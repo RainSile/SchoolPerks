@@ -1,0 +1,46 @@
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/target/
+coverage/
+.local/
+**/.local/
+**/playwright-report/
+**/test-results/
+*.log
+# Private configuration and keys
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local.yml
+*.local.yaml
+application-private.*
+application-secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+# Editor and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+# Personal documents, exports and archives do not belong in source branches
+*.doc
+*.docx
+*.pdf
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+*.zip
+*.7z
+*.rar
+*.sql.gz
+*.dump

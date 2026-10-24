@@ -1,0 +1,20 @@
+{
+  "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+  "aliases": {
+    "campus-perks-search-v1": { "is_write_index": true }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "_meta": { "campus_schema": 1 },
+    "properties": {
+      "resource_type": { "type": "keyword" },
+      "resource_id": { "type": "keyword" },
+      "source_hash": { "type": "keyword" },
+      "school_id": { "type": "keyword" },
+      "merchant_id": { "type": "keyword" },
+      "visible": { "type": "boolean" },
+      "title": { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart" },
+      "body": { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart" }
+    }
+  }
+}
