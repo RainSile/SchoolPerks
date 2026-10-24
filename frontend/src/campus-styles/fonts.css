@@ -1,0 +1,23 @@
+@font-face {
+  font-family: "Campus Notice Round";
+  src: url('/fonts/campus-notice-round.woff') format('woff');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* The rounded face belongs to student headings, never rules, prices or forms. */
+.portal-user h1:not(.authored-title),
+.portal-user .brand > span,
+.portal-user .auth-poster h2,
+.portal-user .reading-rail h2,
+.portal-user .notice-slip strong,
+.portal-user .board-title {
+  font-family: var(--campus-font-display);
+  font-weight: 400;
+  letter-spacing: .01em;
+}
+
+.portal-user .authored-title {
+  font-family: var(--campus-font-body);
+}

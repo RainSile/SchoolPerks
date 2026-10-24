@@ -1,0 +1,1 @@
+<template><svg class="campus-mark" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M4 5h28v9a4 4 0 0 0 0 8v9H4v-9a4 4 0 0 0 0-8V5Z" fill="currentColor"/><path d="M10 11h7v14h-7m16-14h-7v14h7" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M25 3v8l3-2 3 2V3" fill="#FFD86B"/></svg></template>

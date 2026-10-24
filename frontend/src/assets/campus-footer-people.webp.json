@@ -1,0 +1,4 @@
+{
+  "prompt": "Use case: background-extraction. Edit target: the provided campus illustration. Produce a transparent foreground cutout containing only the SAME two university students, their bicycle, takeaway coffee and blank ticket. Preserve their exact identities, facial appearance, clothing, poses, proportions and watercolor editorial rendering. Keep both students fully visible from hair to shoes, bicycle wheels completely intact. Remove the campus gate, trees, shrubs and all background scenery. No ground rectangle, no shadow plate, no added subjects or text. Genuine transparent alpha around and between the figures and bicycle spokes. The two students are the primary subject. This will be an independent foreground layer over a separate footer landscape. Do not render a website or UI.\n",
+  "createdAt": "2026-10-24T19:52:59.909Z"
+}

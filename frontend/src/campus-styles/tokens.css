@@ -1,0 +1,23 @@
+:root {
+  --campus-font-body: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --campus-font-display: "Campus Notice Round", "Microsoft YaHei", sans-serif;
+  --campus-blue: #2055ce;
+  --campus-blue-strong: #1744a8;
+  --campus-blue-soft: #edf3ff;
+  --campus-yellow: #ffdf7e;
+  --campus-yellow-soft: #fff8df;
+  --campus-orange: #a9421d;
+  --campus-ink: #202a3c;
+  --campus-muted: #59677d;
+  --campus-ground: #f6f8fc;
+  --campus-surface: #ffffff;
+  --campus-line: #e1e6ef;
+  --campus-control: #aebbd0;
+  --campus-danger: #a32738;
+  --campus-success: #216b4a;
+  --campus-radius: 6px;
+  --campus-space: 20px;
+  --campus-ease: cubic-bezier(.16, 1, .3, 1);
+  --campus-fast: 150ms;
+  --campus-duration: 220ms;
+}
