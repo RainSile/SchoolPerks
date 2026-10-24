@@ -1,0 +1,66 @@
+name: campus-perks-infra
+services:
+  redis:
+    image: public.ecr.aws/docker/library/redis@sha256:57e4255cc971b1c8d6f8a6ca283ac01bc3ecdd914273ef6bfaede87aaecd6541
+    command: [redis-server, /usr/local/etc/redis/redis.conf]
+    restart: unless-stopped
+    ports: ["127.0.0.1:6379:6379"]
+    mem_limit: 80m
+    memswap_limit: 256m
+    cpus: 0.4
+    volumes: ["redis-data:/data", "./redis.conf:/usr/local/etc/redis/redis.conf:ro"]
+    logging: &logs
+      driver: json-file
+      options: {max-size: "10m", max-file: "2"}
+  mongo:
+    image: public.ecr.aws/docker/library/mongo@sha256:4a4ab5d4834207389e0d7270fac988e21ffedccecba77991a552f755df229907
+    command: [mongod, --wiredTigerCacheSizeGB, "0.25", --bind_ip_all]
+    restart: unless-stopped
+    ports: ["127.0.0.1:27017:27017"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?required}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?required}
+    mem_limit: 384m
+    memswap_limit: 768m
+    cpus: 0.6
+    volumes: ["mongo-data:/data/db"]
+    logging: *logs
+  rabbitmq:
+    image: public.ecr.aws/docker/library/rabbitmq@sha256:5b70d54d53d0ce9558b84ad93cb237d06fa2e8c57115fa0ff7223b9eaffa44ed
+    hostname: campus-rabbitmq
+    restart: unless-stopped
+    ports: ["127.0.0.1:5672:5672"]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?required}
+      RABBITMQ_DEFAULT_VHOST: campus
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+S 1:1 +A 4 +SDcpu 1 +SDio 1"
+    volumes: ["rabbit-data:/var/lib/rabbitmq", "./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro"]
+    mem_limit: 256m
+    memswap_limit: 512m
+    cpus: 0.5
+    logging: *logs
+  elasticsearch:
+    image: campus-elasticsearch-ik:8.19.23
+    build: {context: ., dockerfile: Dockerfile.elasticsearch}
+    restart: unless-stopped
+    ports: ["127.0.0.1:9200:9200"]
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.ml.enabled: "false"
+      xpack.watcher.enabled: "false"
+      node.roles: master,data,ingest
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:?required}
+      ES_JAVA_OPTS: "-Xms256m -Xmx256m -XX:-HeapDumpOnOutOfMemoryError"
+    volumes: ["es-data:/usr/share/elasticsearch/data"]
+    mem_limit: 640m
+    memswap_limit: 1280m
+    cpus: 0.8
+    logging: *logs
+volumes:
+  redis-data:
+  mongo-data:
+  rabbit-data:
+  es-data:

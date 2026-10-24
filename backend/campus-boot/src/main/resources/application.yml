@@ -1,0 +1,250 @@
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+spring:
+  task:
+    scheduling:
+      pool:
+        size: ${SCHEDULER_POOL_SIZE:4}
+  application:
+    name: campus-perks
+  profiles:
+    default: skeleton
+  jackson:
+    time-zone: UTC
+    deserialization:
+      fail-on-unknown-properties: true
+  mvc:
+    problemdetails:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:30MB}
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:true}
+  swagger-ui:
+    enabled: ${API_DOCS_ENABLED:true}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+campus:
+  analytics:
+    default-days: ${ANALYTICS_DEFAULT_DAYS:7}
+    max-days: ${ANALYTICS_MAX_DAYS:93}
+    default-zone: ${ANALYTICS_DEFAULT_ZONE:Asia/Shanghai}
+    allowed-zones: ${ANALYTICS_ALLOWED_ZONES:Asia/Shanghai,UTC}
+    cache-ttl: ${ANALYTICS_CACHE_TTL:30s}
+    max-cache-entries: ${ANALYTICS_MAX_CACHE_ENTRIES:128}
+    top-coupons: ${ANALYTICS_TOP_COUPONS:10}
+  audit:
+    operations-enabled: ${OPERATION_AUDIT_ENABLED:true}
+    default-days: ${OPERATION_AUDIT_DEFAULT_DAYS:7}
+    max-days: ${OPERATION_AUDIT_MAX_DAYS:93}
+  infrastructure:
+    redis:
+      enabled: ${REDIS_ENABLED:false}
+      uri: ${REDIS_URI:}
+      timeout: ${REDIS_TIMEOUT:5s}
+    mongo:
+      enabled: ${MONGO_ENABLED:false}
+      uri: ${MONGO_URI:}
+      database: ${MONGO_DATABASE:campus_perks}
+      timeout: ${MONGO_TIMEOUT:10s}
+    rabbit:
+      enabled: ${RABBITMQ_ENABLED:false}
+      host: ${RABBITMQ_HOST:127.0.0.1}
+      port: ${RABBITMQ_PORT:5672}
+      username: ${RABBITMQ_USERNAME:}
+      password: ${RABBITMQ_PASSWORD:}
+      virtual-host: ${RABBITMQ_VHOST:campus}
+      queue: ${RABBITMQ_QUEUE:campus.events}
+      timeout: ${RABBITMQ_TIMEOUT:5s}
+      batch-size: ${RABBITMQ_BATCH_SIZE:5}
+      max-attempts: ${RABBITMQ_MAX_ATTEMPTS:8}
+      max-queue-length: ${RABBITMQ_MAX_QUEUE_LENGTH:10000}
+      retry-delay: ${RABBITMQ_RETRY_DELAY:5s}
+  assistant:
+    budget:
+      daily-chat-calls: ${AI_DAILY_CHAT_CALLS:40}
+      daily-embedding-calls: ${AI_DAILY_EMBEDDING_CALLS:60}
+    marketing:
+      enabled: ${MARKETING_AI_ENABLED:false}
+      max-brief-length: ${MARKETING_MAX_BRIEF_LENGTH:2000}
+      max-title-length: ${MARKETING_MAX_TITLE_LENGTH:100}
+      max-body-length: ${MARKETING_MAX_BODY_LENGTH:4000}
+      requests-per-minute: ${MARKETING_REQUESTS_PER_MINUTE:3}
+      max-attempts: ${MARKETING_MAX_ATTEMPTS:3}
+      lease-ttl: ${MARKETING_LEASE_TTL:2m}
+    enabled: ${ASSISTANT_ENABLED:false}
+    history-turns: ${ASSISTANT_HISTORY_TURNS:10}
+    requests-per-minute: ${ASSISTANT_REQUESTS_PER_MINUTE:10}
+    max-message-length: ${ASSISTANT_MAX_MESSAGE_LENGTH:2000}
+    max-tool-rounds: ${ASSISTANT_MAX_TOOL_ROUNDS:3}
+    max-tool-calls: ${ASSISTANT_MAX_TOOL_CALLS:5}
+    tool-timeout: ${ASSISTANT_TOOL_TIMEOUT:10s}
+    lease-ttl: ${ASSISTANT_LEASE_TTL:5m}
+    retrieval-limit: ${ASSISTANT_RETRIEVAL_LIMIT:5}
+    max-context-chars: ${ASSISTANT_MAX_CONTEXT_CHARS:6000}
+  community:
+    max-images: ${COMMUNITY_MAX_IMAGES:6}
+    max-body-length: ${COMMUNITY_MAX_BODY_LENGTH:6000}
+    max-comment-length: ${COMMUNITY_MAX_COMMENT_LENGTH:2000}
+    blocked-terms: ${COMMUNITY_BLOCKED_TERMS:}
+  search:
+    backend: ${SEARCH_BACKEND:MYSQL}
+    max-window: ${SEARCH_MAX_WINDOW:1000}
+    excerpt-length: ${SEARCH_EXCERPT_LENGTH:240}
+    rebuild-enabled: ${SEARCH_REBUILD_ENABLED:true}
+    poll-interval-ms: ${SEARCH_POLL_INTERVAL_MS:3000}
+    batch-size: ${SEARCH_BATCH_SIZE:10}
+    lease-ttl: ${SEARCH_LEASE_TTL:2m}
+    elasticsearch:
+      endpoint: ${ELASTICSEARCH_ENDPOINT:}
+      api-key: ${ELASTICSEARCH_API_KEY:}
+      index: ${ELASTICSEARCH_INDEX:campus-perks-search-v1}
+      expected-version: ${ELASTICSEARCH_EXPECTED_VERSION:}
+      ik-version: ${ELASTICSEARCH_IK_VERSION:}
+      timeout: ${ELASTICSEARCH_TIMEOUT:5s}
+  location:
+    max-radius-meters: ${LOCATION_MAX_RADIUS_METERS:20000}
+  trade:
+    redemption-ttl: ${TRADE_REDEMPTION_TTL:2m}
+    redemption-resend-interval: ${TRADE_REDEMPTION_RESEND_INTERVAL:10s}
+    scheduler-enabled: ${TRADE_SCHEDULER_ENABLED:true}
+    poll-interval-ms: ${TRADE_POLL_INTERVAL_MS:5000}
+    batch-size: ${TRADE_BATCH_SIZE:10}
+    max-stock: ${TRADE_MAX_STOCK:100000}
+    max-group-size: ${TRADE_MAX_GROUP_SIZE:20}
+    max-group-duration: ${TRADE_MAX_GROUP_DURATION:1d}
+    max-offer-duration: ${TRADE_MAX_OFFER_DURATION:90d}
+    refund-max-attempts: ${TRADE_REFUND_MAX_ATTEMPTS:8}
+    retry-base: ${TRADE_RETRY_BASE:10s}
+    retry-max: ${TRADE_RETRY_MAX:10m}
+    lease-ttl: ${TRADE_LEASE_TTL:2m}
+    payment-check-interval: ${TRADE_PAYMENT_CHECK_INTERVAL:30s}
+  files:
+    max-bytes: ${FILE_MAX_BYTES:10485760}
+    max-pending-per-user: ${FILE_MAX_PENDING_PER_USER:10}
+    allowed-types: ${FILE_ALLOWED_TYPES:application/pdf,image/jpeg,image/png}
+    upload-ttl: ${FILE_UPLOAD_TTL:5m}
+    download-ttl: ${FILE_DOWNLOAD_TTL:2m}
+    object-prefix: ${FILE_OBJECT_PREFIX:private/merchant-qualifications}
+  coupon:
+    max-stock: ${COUPON_MAX_STOCK:100000}
+    max-validity: ${COUPON_MAX_VALIDITY:90d}
+    ticket-ttl: ${REDEMPTION_TICKET_TTL:2m}
+    ticket-resend-interval: ${REDEMPTION_TICKET_RESEND_INTERVAL:10s}
+    redemption-window: ${REDEMPTION_RATE_WINDOW:1m}
+    redemption-window-limit: ${REDEMPTION_RATE_LIMIT:20}
+  notifications:
+    dispatch-enabled: ${NOTIFICATION_DISPATCH_ENABLED:true}
+    poll-interval-ms: ${NOTIFICATION_POLL_INTERVAL_MS:2000}
+    batch-size: ${NOTIFICATION_BATCH_SIZE:10}
+    max-attempts: ${NOTIFICATION_MAX_ATTEMPTS:8}
+    lease-ttl: ${NOTIFICATION_LEASE_TTL:1m}
+    retry-base: ${NOTIFICATION_RETRY_BASE:5s}
+    retry-max: ${NOTIFICATION_RETRY_MAX:5m}
+    authentication-timeout: ${NOTIFICATION_AUTH_TIMEOUT:5s}
+    max-connections: ${NOTIFICATION_MAX_CONNECTIONS:1000}
+    max-connections-per-user: ${NOTIFICATION_MAX_CONNECTIONS_PER_USER:3}
+    max-message-bytes: ${NOTIFICATION_MAX_MESSAGE_BYTES:4096}
+    send-time-limit-ms: ${NOTIFICATION_SEND_TIME_LIMIT_MS:3000}
+    send-buffer-bytes: ${NOTIFICATION_SEND_BUFFER_BYTES:65536}
+    ping-interval-seconds: ${NOTIFICATION_PING_INTERVAL_SECONDS:20}
+    reconnect-delay-seconds: ${NOTIFICATION_RECONNECT_DELAY_SECONDS:5}
+  merchant:
+    categories: ${MERCHANT_CATEGORIES:DINING,ENTERTAINMENT,LIFE_SERVICE}
+    max-members: ${MERCHANT_MAX_MEMBERS:20}
+  auth:
+    enabled: ${AUTH_ENABLED:false}
+    access-token-ttl: ${ACCESS_TOKEN_TTL:15m}
+    refresh-token-ttl: ${REFRESH_TOKEN_TTL:30d}
+    resend-interval: ${SMS_RESEND_INTERVAL:60s}
+    rate-window: ${SMS_RATE_WINDOW:1h}
+    phone-window-limit: ${SMS_PHONE_WINDOW_LIMIT:5}
+    ip-window-limit: ${SMS_IP_WINDOW_LIMIT:20}
+    max-code-attempts: ${SMS_MAX_CODE_ATTEMPTS:5}
+    code-length: ${SMS_CODE_LENGTH:6}
+    code-hash-secret-base64: ${OTP_HASH_SECRET_BASE64:}
+    identity-key-base64: ${IDENTITY_KEY_BASE64:}
+    nickname-prefix: ${USER_NICKNAME_PREFIX:校园用户}
+    password:
+      bcrypt-strength: ${PASSWORD_BCRYPT_STRENGTH:12}
+      min-length: ${PASSWORD_MIN_LENGTH:10}
+      max-bytes: ${PASSWORD_MAX_BYTES:72}
+      rate-window: ${PASSWORD_RATE_WINDOW:15m}
+      phone-limit: ${PASSWORD_PHONE_LIMIT:10}
+      ip-limit: ${PASSWORD_IP_LIMIT:60}
+  database:
+    enabled: false
+  security:
+    docs-enabled: ${API_DOCS_ENABLED:true}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    jwt:
+      enabled: ${JWT_ENABLED:false}
+      secret-base64: ${JWT_SECRET_BASE64:}
+      issuer: ${JWT_ISSUER:campus-perks}
+      audience: ${JWT_AUDIENCE:campus-web}
+  integrations:
+    sms:
+      simulated-enabled: ${SMS_SIMULATED_ENABLED:false}
+      simulated-code: ${SMS_SIMULATED_CODE:}
+    alipay-sandbox:
+      enabled: ${ALIPAY_SANDBOX_ENABLED:false}
+      gateway: ${ALIPAY_SANDBOX_GATEWAY:https://openapi.alipaydev.com/gateway.do}
+      app-id: ${ALIPAY_SANDBOX_APP_ID:}
+      seller-id: ${ALIPAY_SANDBOX_SELLER_ID:}
+      private-key: ${ALIPAY_SANDBOX_PRIVATE_KEY:}
+      public-key: ${ALIPAY_SANDBOX_PUBLIC_KEY:}
+      notify-url: ${ALIPAY_SANDBOX_NOTIFY_URL:}
+      connect-timeout: ${ALIPAY_SANDBOX_CONNECT_TIMEOUT:3s}
+      read-timeout: ${ALIPAY_SANDBOX_READ_TIMEOUT:10s}
+    # Configuration contracts only. Adapters are intentionally not implemented.
+    amap:
+      enabled: ${AMAP_ENABLED:false}
+      js-key: ${AMAP_JS_KEY:}
+      security-code: ${AMAP_SECURITY_CODE:}
+      timeout: ${AMAP_TIMEOUT:10s}
+      requests-per-minute: ${AMAP_REQUESTS_PER_MINUTE:120}
+    minio:
+      enabled: false
+      endpoint: ${MINIO_ENDPOINT:}
+      access-key: ${MINIO_ACCESS_KEY:}
+      secret-key: ${MINIO_SECRET_KEY:}
+      bucket: ${MINIO_BUCKET:}
+    ai:
+      enabled: ${AI_ENABLED:false}
+      base-url: ${AI_BASE_URL:}
+      api-key: ${AI_API_KEY:}
+      chat-model: ${AI_CHAT_MODEL:}
+      embedding-model: ${AI_EMBEDDING_MODEL:}
+      embedding-dimensions: ${AI_EMBEDDING_DIMENSIONS:0}
+      embedding-base-url: ${AI_EMBEDDING_BASE_URL:}
+      embedding-api-key: ${AI_EMBEDDING_API_KEY:}
+      timeout: ${AI_TIMEOUT:45s}
+      max-tokens: ${AI_MAX_TOKENS:1500}
+      max-embedding-chars: ${AI_MAX_EMBEDDING_CHARS:6000}
+    pinecone:
+      enabled: ${PINECONE_ENABLED:false}
+      api-key: ${PINECONE_API_KEY:}
+      index-host: ${PINECONE_INDEX_HOST:}
+      namespace: ${PINECONE_NAMESPACE:}
+      timeout: ${PINECONE_TIMEOUT:15s}
+      vector-field: ${PINECONE_VECTOR_FIELD:embedding}
+  business:
+    verification-code-ttl: ${VERIFICATION_CODE_TTL:5m}
+    order-payment-timeout: ${ORDER_PAYMENT_TIMEOUT:15m}
+    coupon-claim-limit: ${COUPON_CLAIM_LIMIT:1}

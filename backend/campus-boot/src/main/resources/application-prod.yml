@@ -1,0 +1,24 @@
+# Production requires explicit datasource/JWT settings; no anonymous business writes.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
+    clean-disabled: true
+    baseline-on-migrate: false
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+campus:
+  auth:
+    enabled: true
+  database:
+    enabled: true
+  security:
+    docs-enabled: false
+    jwt:
+      enabled: true
