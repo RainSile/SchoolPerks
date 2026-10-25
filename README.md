@@ -90,3 +90,13 @@ git clone --branch campus-backend --single-branch https://github.com/RainSile/Sc
 ## 许可证
 
 项目沿用 [Apache License 2.0](LICENSE)。第三方字体按随附的 OFL 许可分发，来源与派生说明见[前端字体记录](https://github.com/RainSile/SchoolPerks/blob/campus-frontend/frontend/public/fonts/README.md)。
+
+<!-- campus-release-20261026-start -->
+## 最近更新
+
+智能助手新增真正的流式输出、安全 Markdown、多步业务操作和明确的角色权限。平台管理员可在显式授权后跨端调用业务 API，个人会话继续隔离。
+
+本轮修复搜索重建测试隔离、管理员跨端二次校验与内部守卫等问题，188项后端检查、11组浏览器检查、真实优惠/地图旅程及真实模型四条链路通过。真实短信、MinIO、支付宝沙箱及其他未覆盖分支仍需专项验收。
+
+[助手业务 API 与权限](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ASSISTANT-BUSINESS-APIS.md) · [业务测试与修复报告](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/BUSINESS-TEST-RESULTS.md)
+<!-- campus-release-20261026-end -->
