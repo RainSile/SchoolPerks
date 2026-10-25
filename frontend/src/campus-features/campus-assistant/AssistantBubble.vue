@@ -6,6 +6,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useSessionStore } from '../../campus-stores/session'
 import { request, ApiError } from '../../campus-shared/http'
 import { transport } from '../../campus-shared/transport'
+withDefaults(defineProps<{ placement?: 'left' | 'right' }>(), { placement: 'right' })
 interface Capabilities { enabled: boolean; accountType: string | null; maxMessageLength: number; timeoutSeconds: number; tools: string[] }
 interface Message { id: string; conversationId: string; status: string; question: string; reply: string | null; tools: string[]; sources: { type: string; id: string; title: string; excerpt: string }[]; errorCode: string | null }
 const session = useSessionStore(), open = ref(false), busy = ref(false), message = ref(''), input = ref(''), conversation = ref('')
@@ -70,7 +71,7 @@ window.addEventListener('keydown', closeOnEscape)
 onBeforeUnmount(() => { controller?.abort(); window.removeEventListener('keydown', closeOnEscape) })
 </script>
 <template>
-  <div class="assistant-widget">
+  <div class="assistant-widget" :class="{ 'assistant-widget--left': placement === 'left' }">
     <Transition name="assistant-panel"><section v-if="open" id="campus-assistant-panel" class="assistant-panel" role="dialog" :aria-label="label" aria-modal="false">
       <header><div><strong>{{ label }}</strong><small>仅处理当前账号有权访问的信息</small></div><button type="button" aria-label="收起助手" @click="open = false"><CampusIcon name="close" :size="19" /></button></header>
       <div ref="timeline" class="assistant-timeline" aria-live="polite">
@@ -90,6 +91,7 @@ onBeforeUnmount(() => { controller?.abort(); window.removeEventListener('keydown
 </template>
 <style scoped>
 .assistant-widget { position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: flex; align-items: flex-end; flex-direction: column; gap: 12px; max-width: calc(100vw - 32px); }
+.assistant-widget--left { right: auto; left: 20px; align-items: flex-start; }
 .assistant-launcher { border-radius: 30px; padding: 11px 16px; display: flex; gap: 8px; align-items: center; min-height: 44px; }
 .assistant-launcher:hover:not(:disabled) { transform: translateY(-2px); }
 .assistant-panel { width: 390px; max-width: 100%; height: min(600px,75vh); display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0 12px 42px #23365328; overflow: hidden; }
@@ -116,6 +118,7 @@ onBeforeUnmount(() => { controller?.abort(); window.removeEventListener('keydown
 .assistant-panel-enter-active,.assistant-panel-leave-active { transition: opacity .2s var(--campus-ease), transform .2s var(--campus-ease); }
 .assistant-panel-enter-from,.assistant-panel-leave-to { opacity: 0; transform: translateY(12px) scale(.98); transform-origin: bottom right; }
 @keyframes assistant-breathe { 50% { opacity: .3; } }
-@media(max-width:520px) { .assistant-widget { right: 14px; bottom: 14px; }.assistant-launcher { padding: 12px; width: 46px; height: 46px; }.assistant-launcher > span { display: none; }.assistant-panel { width: calc(100vw - 28px); height: min(620px,74vh); } }
+.assistant-widget--left .assistant-panel-enter-from,.assistant-widget--left .assistant-panel-leave-to { transform-origin: bottom left; }
+@media(max-width:520px) { .assistant-widget { right: 14px; bottom: 14px; }.assistant-widget--left { right: auto; left: 14px; }.assistant-launcher { padding: 12px; width: 46px; height: 46px; }.assistant-launcher > span { display: none; }.assistant-panel { width: calc(100vw - 28px); height: min(620px,74vh); } }
 @media(prefers-reduced-motion:reduce) { .assistant-launcher,.assistant-panel-enter-active,.assistant-panel-leave-active { transition: none; }.assistant-thinking span { animation: none; } }
 </style>

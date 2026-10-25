@@ -17,4 +17,4 @@ watch(() => route.path, async () => {
 })
 onBeforeUnmount(() => transition?.cancel())
 </script>
-<template><component :is="layout"><div ref="surface" class="route-surface"><RouterView /></div></component><AssistantBubble /></template>
+<template><component :is="layout"><div ref="surface" class="route-surface"><RouterView /></div></component><AssistantBubble :placement="route.path === '/nearby' ? 'left' : 'right'" /></template>

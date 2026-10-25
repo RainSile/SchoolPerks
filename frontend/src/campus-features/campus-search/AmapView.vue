@@ -4,7 +4,7 @@ import { transport } from '../../campus-shared/transport'
 import { config } from '../../campus-shared/config'
 import { loadAmap, type MapInstance } from './amap-sdk'
 interface Point { id: string; name: string; longitude: number | string; latitude: number | string }
-const props = defineProps<{ longitude?: string; latitude?: string; points?: Point[] }>()
+const props = withDefaults(defineProps<{ longitude?: string; latitude?: string; points?: Point[]; immersive?: boolean }>(), { immersive: false })
 const container = ref<HTMLElement | null>(null), configured = ref(false), loading = ref(false), shown = ref(false), message = ref('')
 let map: MapInstance | null = null, markers: unknown[] = [], cap: { configured: boolean; jsKey: string; proxyPath: string } | null = null, alive = true, generation = 0
 async function draw() {
@@ -44,5 +44,31 @@ async function initialize() {
 onMounted(initialize)
 onBeforeUnmount(() => { alive = false; generation++; map?.destroy() })
 </script>
-<template><section class="workspace-card"><h2>地图位置</h2><p class="muted">进入页面后自动加载高德地图。定位需要浏览器授权，也可输入坐标查询附近商家。</p><p v-if="loading" role="status">正在加载地图…</p><p v-if="message" role="status">{{ message }}</p><button v-if="message && !shown && !loading" @click="initialize">重试加载地图</button><div v-if="configured" ref="container" class="amap-canvas" :class="{ 'amap-hidden': !shown }" aria-label="高德地图位置展示" /></section></template>
-<style scoped>.amap-canvas{width:100%;height:360px;border-radius:12px;overflow:hidden;margin-top:12px}.amap-hidden{height:1px;visibility:hidden}@media(max-width:520px){.amap-canvas{height:300px}.amap-hidden{height:1px}}</style>
+<template>
+  <section class="amap-view" :class="{ 'workspace-card': !immersive, 'amap-view--immersive': immersive }" aria-label="地图位置">
+    <template v-if="!immersive"><h2>地图位置</h2><p class="muted">进入页面后自动加载高德地图。定位需要浏览器授权，也可输入坐标查询附近商家。</p></template>
+    <div v-if="loading || message" class="amap-feedback" :class="{ 'amap-feedback--notice': shown }">
+      <p v-if="loading" role="status">正在加载地图…</p>
+      <p v-if="message" role="status">{{ message }}</p>
+      <button v-if="message && !shown && !loading" type="button" @click="initialize">重试加载地图</button>
+    </div>
+    <div v-if="configured" ref="container" class="amap-canvas" :class="{ 'amap-hidden': !shown }" aria-label="高德地图位置展示" />
+    <slot />
+  </section>
+</template>
+<style scoped>
+.amap-canvas { width: 100%; height: 360px; border-radius: 12px; overflow: hidden; margin-top: 12px; }
+.amap-hidden { height: 1px; visibility: hidden; }
+.amap-view--immersive { position: relative; height: 100%; isolation: isolate; overflow: hidden; background: var(--campus-blue-soft); }
+.amap-view--immersive .amap-canvas { position: relative; z-index: 0; height: 100%; margin: 0; border-radius: 0; }
+.amap-view--immersive .amap-feedback { position: absolute; z-index: 2; inset: 24px 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; color: var(--campus-muted); text-align: center; pointer-events: none; }
+.amap-view--immersive .amap-feedback button { pointer-events: auto; }
+.amap-view--immersive .amap-feedback--notice { inset: 22px 22px auto; align-items: flex-start; padding: 0; font-size: 12px; }
+.amap-view--immersive .amap-feedback--notice p { padding: 8px 12px; background: #fffffff2; border-radius: 8px; box-shadow: 0 2px 12px #243c5a12; }
+@media(max-width: 600px) {
+  .amap-canvas { height: 300px; }
+  .amap-hidden { height: 1px; }
+  .amap-view--immersive .amap-feedback { inset: 16px 12px auto; padding: 18px; }
+  .amap-view--immersive .amap-feedback--notice { inset: 16px 12px auto; padding: 0; }
+}
+</style>
