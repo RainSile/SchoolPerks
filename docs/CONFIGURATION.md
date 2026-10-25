@@ -37,3 +37,9 @@ backend/.env.example只列环境变量，Spring Boot不会自动加载.env。通
 使用专用MySQL8库，先以受控账号执行后端分支scripts/create-database.sql，或自行创建与DB_NAME一致的库。启动local后由Flyway管理表结构；V1–V11为已有迁移，不修改已执行文件、不使用clean或baseline掩盖不匹配。
 
 仓库不含默认管理员及真实演示账号。账号、校园、门店等业务数据须按受控流程准备。不要导入未知数据导出，也不要对共享生产数据库运行测试。
+
+<!-- campus-release-20261026-start -->
+## 2026-10-26 更新
+
+助手默认关闭；配置模型、Redis、MongoDB并显式ASSISTANT_ENABLED后使用。ASSISTANT_MAX_TOOL_ROUNDS默认16、ASSISTANT_MAX_TOOL_CALLS默认32，另有无工具总结；工作线程/队列/输出长度通过campus.assistant-stream配置。所有凭据由私有环境提供。
+<!-- campus-release-20261026-end -->

@@ -1,10 +1,18 @@
 # 架构与模块职责
 
-2026-10-23第七阶段补充：campus-analytics只读boot迁移管理的统计视图，账号/会话/门店守卫通过端口；Java生成时区日界线并使用REPEATABLE_READ聚合，有界短期进程缓存始终在权限检查之后。campus-security提供白名单@AuditedOperation/OperationAuditPort，campus-admin持久化和查询结果；不引入security→integration循环，不新增AspectJ版本。原业务事务AuditPort保持严格原子性，辅助结果审计单独记录成功/拒绝/失败且不保存输入正文。详见BUSINESS-RULES.md。
+## 当前助手链路（2026-10-26）
 
-2026-10-23第六阶段补充：营销草稿及交互预算位于campus-assistant，跨域规则通过integration的PromotionFactsPort/PublicContentPort/MerchantAccessPort读取，不直接访问coupon/merchant Mapper。模型经AiModelPort调用，不暴露SDK类型。生成计划/结果确认使用SQL短事务，外部请求在事务外，最终重查会话、门店、公开事实和租约；所有结果只落私有草稿。原悬浮助手保持只读工具，详情见BUSINESS-RULES.md。
+Vue浮动助手→携带Bearer的POST SSE→有界安全上下文工作线程→LangChain4j上游流式回调队列→固定工具目录→携带本人JWT的本机真实业务API→原领域服务与MySQL。模型不能决定URL、HTTP方法、执行身份或新增权限；SDK回调线程不直接访问用户安全上下文。
 
-采用模块化单体：一个后端进程、一套主数据库、一个包含三端入口的 Vue 应用。先在模块边界内完成业务闭环，再按需接入外部基础设施。
+目录由实际注册Controller的Operation及参数结构生成，结合明确的端/权限策略；未分类端点默认拒绝。用户会话按owner+实际portal隔离，MongoDB仅存完成聊天，MySQL租约/幂等命令与写操作日志保障重复请求、崩溃及未知结果。公开向量检索不承载私人聊天。
+
+平台跨端能力需要ADMIN+business:manage，细分动态能力由领域PermissionContributor显式声明。商家与统计、营销服务仍验证真实会话、当前成员范围/平台授权、状态和版本；管理员不被伪装为商家或学生。早期“只读工具”描述由本节与ASSISTANT-BUSINESS-APIS.md取代。
+
+2026-10-23第七阶段补充：campus-analytics只读boot迁移管理的统计视图，账号/会话/门店守卫通过端口；Java生成时区日界线并使用REPEATABLE_READ聚合，有界短期进程缓存始终在权限检查之后。campus-security提供白名单@AuditedOperation/OperationAuditPort，campus-admin持久化和查询结果；不引入security→integration循环，不新增AspectJ版本。原业务事务AuditPort保持严格原子性，辅助结果审计单独记录成功/拒绝/失败且不保存输入正文。详见STAGE7.md。
+
+2026-10-23第六阶段补充：营销草稿及交互预算位于campus-assistant，跨域规则通过integration的PromotionFactsPort/PublicContentPort/MerchantAccessPort读取，不直接访问coupon/merchant Mapper。模型经AiModelPort调用，不暴露SDK类型。生成计划/结果确认使用SQL短事务，外部请求在事务外，最终重查会话、门店、公开事实和租约；所有结果只落私有草稿。原悬浮助手保持只读工具，详情见STAGE6.md。
+
+设计依据为用户提供的任务书和开题报告。采用模块化单体：一个后端进程、一套主数据库、一个包含三端入口的 Vue 应用。先在模块边界内完成业务闭环，再按需接入外部基础设施。
 
 ## 模块
 
@@ -103,7 +111,7 @@ trade依赖common/security/integration和Boot管理的Spring JDBC；其Mapper只
 
 写事务沿用账号升序→门店（需授权时）→套餐→团→订单→支付/退款的锁顺序。路由预读只取不可变关联，后续以FOR UPDATE当前行判断可付款、取消、核销或退款；支付/退款和核销码读取也不使用旧RR快照。团成功/失败先持久化，再逐单结算，避免锁团后反向锁其他账号。库存预占和stock_released条件归还均与订单状态/审计/outbox同事务。
 
-integration提供只允许官方沙箱域名的AlipaySandboxAdapter。创建支付链接仅本地签名；后台查单、关闭、退款调用位于事务外。回调先验RSA2及app/seller，再事务校验金额/订单/交易号及通知去重。退款使用稳定out_request_no、租约和退避，远端成功本地失败可用原编号恢复。默认资源未提供时503，不引入运行时Mock。详见BUSINESS-RULES.md和DEPENDENCIES.md。
+integration提供只允许官方沙箱域名的AlipaySandboxAdapter。创建支付链接仅本地签名；后台查单、关闭、退款调用位于事务外。回调先验RSA2及app/seller，再事务校验金额/订单/交易号及通知去重。退款使用稳定out_request_no、租约和退避，远端成功本地失败可用原编号恢复。默认资源未提供时503，不引入运行时Mock。详见STAGE4.md和DEPENDENCIES.md。
 
 ## 第五阶段实现
 
@@ -111,4 +119,4 @@ integration提供只允许官方沙箱域名的AlipaySandboxAdapter。创建支�
 
 SearchChangeEvents在业务事务中写outbox，聚合键为SEARCH:类型:ID；NotificationPublisher明确路由SearchProjectionPort。投影消费者在独立短事务中递增revision、重读公开主库源，远端HTTP移出事务，成功后才消费去重；隐藏保留空正文墓碑。搜索结果按主库公开范围/内容哈希重新校验，防止索引滞后泄露隐藏或旧正文。重建为可恢复游标任务，租约token防旧worker推进，远端external_gte防旧版本覆盖。
 
-SearchEnginePort由MYSQL默认不可用远端实现或显式ES8 REST适配器提供；本地搜索由SearchMapper查询真实投影。Mongo当前用于助手历史，高德进入附近页面后自动加载并转换展示坐标。清单修复及当前真实资源状态见CONFIGURATION.md，原第五阶段历史见SEARCH-SETUP.md。
+SearchEnginePort由MYSQL默认不可用远端实现或显式ES8 REST适配器提供；本地搜索由SearchMapper查询真实投影。Mongo当前用于助手历史，高德进入附近页面后自动加载并转换展示坐标。清单修复及当前真实资源状态见REPAIR-ACCEPTANCE.md，原第五阶段历史见SEARCH-SETUP.md。

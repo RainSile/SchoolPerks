@@ -1,18 +1,28 @@
 # 数据库与迁移
 
+## 当前结构：V12（2026-10-26）
+
+当前55张业务基表、Flyway历史表和9个视图；下面V1–V6说明是历史演进。V7加入实际账号端和RBAC授权版本，V8加入助手会话/持久消息与租约，V9加入密码认证，V10加入营销草稿及交互预算，V11加入统计视图及操作审计，V12加入平台跨端权限和助手写操作日志。已执行V1–V12不可改，下一迁移从V13开始。
+
+V12的campus_assistant_tool_execution以(turn_id,ordinal)为主键、外键绑定真实消息；记录固定operationId、规范化入参摘要、RUNNING/COMPLETED及脱敏结果。先提交尝试记录再调用真实业务API，完整结果才标记完成；未知结果不盲重放，同一turn已完成意图复用结果。网络调用不持有数据库事务。
+
+business:manage只授予实际ADMIN角色，现有rbac:manage的ADMIN角色由迁移显式获得此权限；普通账号不被提升。账号真实端、会话、权限、成员和资源范围仍由原业务表校验，不创建假身份。
+
+MongoDB已用于assistant_turns已完成聊天，查询必须同时限定owner、portal、conversationId；SQL仍是命令与状态事实。Pinecone只存公开资料投影，不能写入私有聊天。修复回归按专属根ID清理并比较56表摘要，自增序列正常前进，不回退编号。
+
 当前已执行V1–V11：54张业务表、flyway_schema_history、9个只读视图（4公开来源/目录、5私有统计）；后续只能追加V12+。V9扩展短信挑战用途为LOGIN/REGISTER/RESET_PASSWORD，使用既有password_hash列实现密码认证，不新增默认账号。下文旧阶段项数为对应阶段历史。
 
 ## V11 第七阶段（已执行）
 
 新增campus_analytics_event/claim/order/merchant/account，只读聚合支付/成功退款/领券/核销和创建计数；统计视图不是公开API，只由analytics在后端权限和范围守卫后查询。事件视图UNION ALL保留原业务时间，领取与核销唯一关联不产生扇出；Java生成UTC日界线。新增日期窗口索引，不修改历史业务记录。
 
-campus_operation_audit保存固定动作/资源、操作者ID、SUCCESS/DENIED/FAILURE、HTTP/通用错误代码、耗时与时间；不保存请求或响应正文/异常原文，不依赖actor外键删除历史。原campus_audit_event业务事务审计保留。V11已执行不可改；详见BUSINESS-RULES.md。
+campus_operation_audit保存固定动作/资源、操作者ID、SUCCESS/DENIED/FAILURE、HTTP/通用错误代码、耗时与时间；不保存请求或响应正文/异常原文，不依赖actor外键删除历史。原campus_audit_event业务事务审计保留。V11已执行不可改；详见STAGE7.md。
 
 ## V10 第六阶段（已执行）
 
 campus_marketing_draft保存门店/创建者/幂等键、输入摘要、公开事实快照、草稿状态、版本、尝试及租约；唯一键为门店/创建者/请求键。campus_ai_usage按账号/UTC日期/CHAT或EMBEDDING记录保守调用计数，不保存供应商密钥或精确账单。模型请求不占SQL事务；最终保存重查会话、门店、来源及租约，审计失败回滚结果。
 
-公开campus_search_source视图追加source_version/valid_from/valid_until，旧列和内容哈希协议保留。Pinecone仅追加文档元数据，不修改索引schema。详见BUSINESS-RULES.md。
+公开campus_search_source视图追加source_version/valid_from/valid_until，旧列和内容哈希协议保留。Pinecone仅追加文档元数据，不修改索引schema。详见STAGE6.md。
 
 ## V7 / V8 清单修复（已执行）
 
@@ -41,7 +51,7 @@ V5只删除V1的ck_order_status并用扩展状态CHECK替换，没有修改V1迁
 
 下单扣库存与订单/请求/成员/审计/outbox同事务；取消使用订单stock_released条件更新，已释放则不再次加库存。已付款退款只在供应商确认后释放仍保留的库存。回调幂等表、支付状态、订单迁移和审计/outbox同事务，不能先记通知成功再提交业务。
 
-后台逐单处理超时/团结果；退款以SKIP LOCKED短事务领取，HTTP在事务外，用原退款ID重试。租约token防止过期worker确认新任务。MySQL REPEATABLE READ下判断状态使用FOR UPDATE当前行，不依赖普通快照；锁顺序见BUSINESS-RULES.md。
+后台逐单处理超时/团结果；退款以SKIP LOCKED短事务领取，HTTP在事务外，用原退款ID重试。租约token防止过期worker确认新任务。MySQL REPEATABLE READ下判断状态使用FOR UPDATE当前行，不依赖普通快照；锁顺序见STAGE4.md。
 
 测试只在授权campus_perks_db内回滚夹具或按精确账号/门店/订单ID删除；清理子表在前，保留外键、迁移与视图，不清空整个库或执行Flyway clean。
 
@@ -145,7 +155,7 @@ READY 文件不再调用封存操作；仅验证拥有者/用途后可关联申�
 
 优惠、审核请求存在当前引用与历史外键，测试清理先将coupon.review_request_id设NULL，再删除审核决定/请求；不得关闭外键检查。只有未发布且非送审中草稿可修改，修改清除当前许可。已发布规则/日期/总量冻结，库存只由领取事务递减。
 
-锁顺序、逻辑过期、限频、码轮换、下架后已领券继续使用和outbox租约语义见BUSINESS-RULES.md。后台没有批量将券写成EXPIRED的任务，过期由读取和核销校验执行；物理清理及保留策略仍待设计。实际测试回滚/清理后30张业务表为空，迁移及视图保留。
+锁顺序、逻辑过期、限频、码轮换、下架后已领券继续使用和outbox租约语义见STAGE3.md。后台没有批量将券写成EXPIRED的任务，过期由读取和核销校验执行；物理清理及保留策略仍待设计。实际测试回滚/清理后30张业务表为空，迁移及视图保留。
 
 ## V6 社区、位置与搜索结构（已执行）
 

@@ -34,3 +34,9 @@ mvn -B -Pexternal-sdks verify
 ## 结果解释
 
 源码构建、UI夹具、真实数据库、外部供应商联调是不同层次。一个检查返回200或界面显示成功，不等于真实支付、短信、存储及AI都已配置。公开仓库不附带个人环境验收日志、演示账号或数据库快照。
+
+<!-- campus-release-20261026-start -->
+## 2026-10-26 更新
+
+新增助手流式/Markdown、明确写允许、未知结果和幂等重放、安全上下文及账号隔离验证。最新脱敏报告见BUSINESS-TEST-RESULTS.md与ASSISTANT-TEST-RESULTS.md；脚本支持独立阶段证据目录，汇总不混入更早的Surefire报告。
+<!-- campus-release-20261026-end -->

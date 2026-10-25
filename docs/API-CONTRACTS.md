@@ -1,8 +1,16 @@
 # REST 接口合同
 
-交易状态机见 [BUSINESS-RULES.md](BUSINESS-RULES.md)，社区/位置/搜索见 [BUSINESS-RULES.md](BUSINESS-RULES.md)。
+## 当前助手与跨端授权（2026-10-26）
 
-相关本地业务已实现，运行后/doc.html可查看完整OpenAPI。下表路径均以/api/v1开头。认证默认关闭时，相关业务明确503；支付宝沙箱另需显式启用和凭据，未准备时付款503。当前账号所属端为USER/MERCHANT/ADMIN，除公开/共用接口外需匹配端，再检查原有操作权限与资源归属。
+新增GET /api/v1/assistant/business-apis，返回当前账号可用的固定业务操作与schema；POST /api/v1/assistant/conversations/{id}/message-streams采用SSE，Bearer和Idempotency-Key必填，JSON为message和allowWrites（默认false）。started/round/delta/tool/completed/error见ASSISTANT-BUSINESS-APIS.md；原JSON提问及状态接口保留。
+
+相同路径按方法区分权限：GET /merchants/{id}为学生公开查询，PATCH为商家操作。学生/商家只用本端与共享本人接口，受限管理员保留细分权限；真实ADMIN具有business:manage后可跨端，但资源状态、版本、自审限制和私人会话归属仍生效。管理员会话校验针对实际ADMIN身份，不能把它改写为目标端身份。
+
+助手转发本人JWT，URL/方法由目录固定，path/query/body仅接受已声明字段。写入先获本消息明确允许，使用不超过64位的稳定业务幂等键和持久结果日志。断开SSE不撤销已提交业务；结果未知先查询，不自动重复提交。完整API与权限表见ASSISTANT-BUSINESS-APIS.md。
+
+交易状态机见 [STAGE4.md](STAGE4.md)，社区/位置/搜索见 [STAGE5.md](STAGE5.md)。
+
+前五阶段本地业务及其后清单修复已实现，运行后/doc.html可查看完整OpenAPI。下表路径均以/api/v1开头。认证默认关闭时，相关业务明确503；支付宝沙箱另需显式启用和凭据，未准备时付款503。当前账号所属端为USER/MERCHANT/ADMIN，除公开/共用接口外需匹配端，再检查原有操作权限与资源归属。
 
 ## 第七阶段：经营看板与操作结果
 
@@ -13,7 +21,7 @@
 | GET /merchant/dashboard?merchantId= | 兼容入口，必须明确门店；相同范围守卫 |
 | GET /admin/operation-audit-events | ADMIN + audit:read；page/size及action/outcome/actorId/from/to过滤；时间UTC左闭右开、最大范围配置化 |
 
-全部Bearer、no-store、OpenAPI。看板返回金额字符串、计算时间/缓存截止、可选时区和日期上限。沙箱支付和成功退款分别按发生时间统计；无领券核销率null，未采集浏览UV为false/null，不能把参与人数当UV。业务规则和AOP覆盖范围详见[STAGE7](BUSINESS-RULES.md)。
+全部Bearer、no-store、OpenAPI。看板返回金额字符串、计算时间/缓存截止、可选时区和日期上限。沙箱支付和成功退款分别按发生时间统计；无领券核销率null，未采集浏览UV为false/null，不能把参与人数当UV。业务规则和AOP覆盖范围详见[STAGE7](STAGE7.md)。
 
 ## 清单修复：RBAC、助手及地图
 
@@ -35,7 +43,7 @@
 | GET /map-capabilities | 公开；configured、公开JS Key和本机代理路径，不含安全密钥 |
 | GET /maps/_AMapService/{version}/{*path} | 公开但按IP限频；官方SDK固定上游/路径代理，未启用503，未允许路径404 |
 
-角色/账号状态使用版本冲突409、同端约束422、越权403；变更同时审计。UserProfile新增accountType/homePath，客户端不能提交这两个字段修改自己身份。助手会话跨账号/端404，同一幂等键不同输入409、限流429，供应商错误503且不回传供应商原文。完整行为见CONFIGURATION.md。
+角色/账号状态使用版本冲突409、同端约束422、越权403；变更同时审计。UserProfile新增accountType/homePath，客户端不能提交这两个字段修改自己身份。助手会话跨账号/端404，同一幂等键不同输入409、限流429，供应商错误503且不回传供应商原文。完整行为见REPAIR-ACCEPTANCE.md。
 
 ## 第四阶段交易接口（已实现本地事务版）
 
@@ -147,7 +155,7 @@ OrderInput不接受amount/currency/quantity/userId。每单一份、服务端CNY
 
 不存在或跨店404，其他端/收银写入403，输入校验400，版本/幂等输入冲突/来源变化/次数耗尽409，长度上限422，模型结果结构错误/违规工具输出502，缺资源、响应解析失败或供应商失败503。分钟限频及共享UTC日预算429；失败供应商尝试计入调用预算，幂等重放不重复计数。所有错误不回显供应商原文或凭据。
 
-模型只输出title/body，不接收任何发布/核销/支付工具。生成保存和审计同事务，外部调用在事务外；真实规则从PromotionFactsPort读取。完整状态与重试语义见BUSINESS-RULES.md。
+模型只输出title/body，不接收任何发布/核销/支付工具。生成保存和审计同事务，外部调用在事务外；真实规则从PromotionFactsPort读取。完整状态与重试语义见STAGE6.md。
 
 第二至第六阶段接口及AI助手已实现，见各阶段表；异步领券仍为后续计划。
 
@@ -238,7 +246,7 @@ CouponInput为title/couponType/rules/totalStock/validFrom/validUntil/campusOnly/
 
 下架不作废已领券，暂停门店则停止本店领券、签发核销码和核销。核销重复请求只返回原记录，不重复库存/审计/outbox；GET本人券可在码过期后恢复最终状态。现有领取次数唯一约束为1，不能只改配置放开。
 
-WebSocket为/api/v1/notification-stream，不能用OpenAPI HTTP调试代替升级连接。首帧AUTHENTICATE携带accessToken，禁止URL凭据、禁止任意订阅userId；READY后PING/PONG，推送NotificationView(type=COUPON_REDEEMED、eventId、本人payload)。断线使用本人通知/券查询恢复；已撤销或过期会话关闭1008，Origin受白名单约束。详见BUSINESS-RULES.md。
+WebSocket为/api/v1/notification-stream，不能用OpenAPI HTTP调试代替升级连接。首帧AUTHENTICATE携带accessToken，禁止URL凭据、禁止任意订阅userId；READY后PING/PONG，推送NotificationView(type=COUPON_REDEEMED、eventId、本人payload)。断线使用本人通知/券查询恢复；已撤销或过期会话关闭1008，Origin受白名单约束。详见STAGE3.md。
 
 ## 第五阶段接口（已实现本地业务与ES协议适配器）
 
