@@ -75,6 +75,8 @@ class CommunityStageFiveMySqlTest {
   @Autowired OutboxDispatcher dispatcher;
   @Autowired MutableClock clock;
   @Autowired AccountDirectoryPort accounts;
+  @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
+  @Autowired com.campus.perks.search.service.SearchProperties searchProperties;
   @MockitoSpyBean AuditPort audit;
   @MockitoSpyBean OutboxPort outbox;
   private long school, owner, author, other, otherOwner, reviewer, store, otherStore, cashier;
@@ -662,14 +664,20 @@ class CommunityStageFiveMySqlTest {
 
   @Test
   void rebuildCreatesProjectionAndIncludesTombstoneKeys() throws Exception {
+    org.junit.jupiter.api.Assumptions.assumeTrue(
+        search.activeRebuild() == null, "Do not lease another operator's rebuild job");
     var p = publish();
+    var scoped =
+        fixtureRebuildProjection(
+            Set.of("MERCHANT:" + store, "MERCHANT:" + otherStore, "POST:" + p.get("id").asText()));
     String id =
         body(call("POST", "/admin/search-index-rebuilds", reviewer, null)
                 .andExpect(status().isCreated()))
             .get("id")
             .asText();
     call("POST", "/admin/search-index-rebuilds", reviewer, null).andExpect(status().isConflict());
-    runRebuild(id);
+    runRebuild(id, scoped);
+    assertThat(search.rebuild(id, false).processed()).isEqualTo(3);
     assertThat(search("noodle").get("total").asLong()).isGreaterThanOrEqualTo(3);
     call("DELETE", "/posts/" + p.get("id").asText(), author, null)
         .andExpect(status().isNoContent());
@@ -678,7 +686,8 @@ class CommunityStageFiveMySqlTest {
                 .andExpect(status().isCreated()))
             .get("id")
             .asText();
-    runRebuild(second);
+    runRebuild(second, scoped);
+    assertThat(search.rebuild(second, false).processed()).isEqualTo(3);
     assertThat(
             jdbc.queryForObject(
                 "SELECT visible FROM campus_search_document WHERE resource_type='POST' AND"
@@ -688,9 +697,40 @@ class CommunityStageFiveMySqlTest {
         .isFalse();
   }
 
-  private void runRebuild(String id) {
-    for (int i = 0; i < 20 && !"COMPLETED".equals(search.rebuild(id, false).status()); i++)
-      projection.rebuildOnce();
+  /**
+   * Real mapper cursor/source/tombstone reads, narrowed to exact fixture keys before any writes.
+   */
+  private SearchProjectionService fixtureRebuildProjection(Set<String> resources) {
+    var scoped = spy(new SearchMapper(jdbc));
+    doAnswer(
+            invocation -> {
+              String type = invocation.getArgument(0), id = invocation.getArgument(1);
+              int limit = invocation.getArgument(2);
+              return search.keys(type, id, Integer.MAX_VALUE).stream()
+                  .filter(key -> resources.contains(key.type() + ":" + key.id()))
+                  .limit(limit)
+                  .toList();
+            })
+        .when(scoped)
+        .keys(anyString(), anyString(), anyInt());
+    var emptyVectors =
+        new org.springframework.beans.factory.support.StaticListableBeanFactory()
+            .getBeanProvider(VectorProjectionPort.class);
+    return new SearchProjectionService(
+        scoped,
+        mock(SearchEnginePort.class),
+        searchProperties,
+        clock,
+        json,
+        transactions,
+        emptyVectors);
+  }
+
+  private void runRebuild(String id, SearchProjectionService scoped) {
+    for (int i = 0; i < 20 && !"COMPLETED".equals(search.rebuild(id, false).status()); i++) {
+      assertThat(search.activeRebuild().id()).isEqualTo(id);
+      scoped.rebuildOnce();
+    }
     assertThat(search.rebuild(id, false).status()).isEqualTo("COMPLETED");
   }
 
@@ -732,6 +772,8 @@ class CommunityStageFiveMySqlTest {
 
   @Test
   void expiredRebuildLeaseRejectsOldWorkerAcknowledgement() throws Exception {
+    org.junit.jupiter.api.Assumptions.assumeTrue(
+        search.activeRebuild() == null, "Do not lease another operator's rebuild job");
     publish();
     String id =
         body(call("POST", "/admin/search-index-rebuilds", reviewer, null)

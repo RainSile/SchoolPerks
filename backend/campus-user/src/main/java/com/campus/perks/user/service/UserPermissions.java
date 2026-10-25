@@ -22,6 +22,12 @@ public class UserPermissions {
     var user = users.find(userId);
     if (user == null) return List.of();
     var result = new TreeSet<String>(users.permissions(userId));
+    if ("ADMIN".equals(user.accountType()) && result.contains("business:manage")) {
+      result.addAll(users.allPermissionCodes());
+      contributors
+          .orderedStream()
+          .forEach(contributor -> result.addAll(contributor.platformPermissions()));
+    }
     if ("MERCHANT".equals(user.accountType()))
       contributors
           .orderedStream()

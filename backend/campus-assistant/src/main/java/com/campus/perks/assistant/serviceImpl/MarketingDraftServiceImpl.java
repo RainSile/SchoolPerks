@@ -93,7 +93,7 @@ public class MarketingDraftServiceImpl implements MarketingDraftService {
     if (!(auth instanceof JwtAuthenticationToken jwt))
       throw error(HttpStatus.UNAUTHORIZED, "INVALID_SESSION", "请重新登录");
     var current = sessions.load(CurrentActor.id(), jwt.getToken().getClaimAsString("sid"));
-    if (!current.active() || !"MERCHANT".equals(current.accountType()))
+    if (!current.active() || !current.accountType().equals(CurrentActor.portal().name()))
       throw error(HttpStatus.UNAUTHORIZED, "INVALID_SESSION", "账号授权已变更，请重新登录");
   }
 

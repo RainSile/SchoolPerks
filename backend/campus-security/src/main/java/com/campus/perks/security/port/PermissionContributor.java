@@ -7,4 +7,9 @@ import java.util.List;
  */
 public interface PermissionContributor {
   List<String> permissions(String userId);
+
+  /** Capability catalogue for an explicitly authorized platform business administrator only. */
+  default List<String> platformPermissions() {
+    return List.of();
+  }
 }

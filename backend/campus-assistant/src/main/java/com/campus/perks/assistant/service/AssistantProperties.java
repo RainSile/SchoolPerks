@@ -22,9 +22,9 @@ public record AssistantProperties(
         || maxMessageLength < 1
         || maxMessageLength > 4000
         || maxToolRounds < 1
-        || maxToolRounds > 5
+        || maxToolRounds > 16
         || maxToolCalls < 1
-        || maxToolCalls > 10
+        || maxToolCalls > 64
         || retrievalLimit < 1
         || retrievalLimit > 20
         || maxContextChars < 1

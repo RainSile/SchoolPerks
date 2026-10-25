@@ -21,4 +21,9 @@ public class MerchantPermissionContributor implements PermissionContributor {
         ? List.of("merchant:read", "merchant:analytics:read")
         : List.of("merchant:read");
   }
+
+  @Override
+  public List<String> platformPermissions() {
+    return List.of("merchant:read", "merchant:analytics:read");
+  }
 }

@@ -70,12 +70,14 @@ public class MerchantWorkflowServiceImpl
   }
 
   private String member(MerchantEntity m) {
+    if (CurrentActor.isBusinessAdministrator()) return "OWNER";
     var role = workflow.role(m.getId(), Long.parseLong(CurrentActor.id()));
     if (role == null) throw error(HttpStatus.NOT_FOUND, "MERCHANT_NOT_FOUND", "门店不存在");
     return role;
   }
 
   private void owner(MerchantEntity m) {
+    if (CurrentActor.isBusinessAdministrator()) return;
     if (!"OWNER".equals(member(m)) || !m.getOwnerId().toString().equals(CurrentActor.id()))
       throw error(HttpStatus.FORBIDDEN, "OWNER_REQUIRED", "此操作仅限店主");
   }

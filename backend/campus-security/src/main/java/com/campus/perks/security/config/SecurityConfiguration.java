@@ -35,6 +35,20 @@ import org.springframework.web.cors.*;
 public class SecurityConfiguration {
   private static final int MIN_HMAC_KEY_BYTES = 32;
 
+  private static org.springframework.security.authorization.AuthorizationManager<
+          org.springframework.security.web.access.intercept.RequestAuthorizationContext>
+      portalAccess(String portal) {
+    return (authentication, context) -> {
+      var permissions =
+          authentication.get().getAuthorities().stream()
+              .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+              .collect(java.util.stream.Collectors.toSet());
+      return new org.springframework.security.authorization.AuthorizationDecision(
+          permissions.contains(portal)
+              || permissions.contains("PORTAL_ADMIN") && permissions.contains("business:manage"));
+    };
+  }
+
   @Bean
   SecurityFilterChain securityFilterChain(
       HttpSecurity http,
@@ -136,14 +150,14 @@ public class SecurityConfiguration {
                       "/api/v1/users/me/merchants",
                       "/api/v1/redemptions/**",
                       "/api/v1/coupons/*/management")
-                  .hasAuthority("PORTAL_MERCHANT");
+                  .access(portalAccess("PORTAL_MERCHANT"));
               auth.requestMatchers(HttpMethod.PATCH, "/api/v1/coupons/*", "/api/v1/trade-offers/*")
-                  .hasAuthority("PORTAL_MERCHANT");
+                  .access(portalAccess("PORTAL_MERCHANT"));
               auth.requestMatchers(
                       HttpMethod.POST,
                       "/api/v1/coupons/*/review-requests",
                       "/api/v1/coupons/*/status-changes")
-                  .hasAuthority("PORTAL_MERCHANT");
+                  .access(portalAccess("PORTAL_MERCHANT"));
               auth.requestMatchers(
                       "/api/v1/orders/**",
                       "/api/v1/group-purchases/**",
@@ -154,7 +168,7 @@ public class SecurityConfiguration {
                       "/api/v1/users/me/campus-verifications/**",
                       "/api/v1/merchant-applications/**",
                       "/api/v1/users/me/merchant-applications")
-                  .hasAuthority("PORTAL_USER");
+                  .access(portalAccess("PORTAL_USER"));
               auth.requestMatchers(
                       HttpMethod.POST,
                       "/api/v1/coupons/*/claims",
@@ -162,11 +176,12 @@ public class SecurityConfiguration {
                       "/api/v1/posts/*/review-requests",
                       "/api/v1/posts/*/comments",
                       "/api/v1/posts/*/reports")
-                  .hasAuthority("PORTAL_USER");
-              auth.requestMatchers(HttpMethod.PATCH, "/api/v1/posts/*").hasAuthority("PORTAL_USER");
+                  .access(portalAccess("PORTAL_USER"));
+              auth.requestMatchers(HttpMethod.PATCH, "/api/v1/posts/*")
+                  .access(portalAccess("PORTAL_USER"));
               auth.requestMatchers(HttpMethod.DELETE, "/api/v1/posts/*", "/api/v1/post-comments/*")
-                  .hasAuthority("PORTAL_USER");
-              auth.requestMatchers("/api/v1/posts/*/likes/me").hasAuthority("PORTAL_USER");
+                  .access(portalAccess("PORTAL_USER"));
+              auth.requestMatchers("/api/v1/posts/*/likes/me").access(portalAccess("PORTAL_USER"));
               auth.requestMatchers("/error").permitAll();
               auth.anyRequest().authenticated();
             });

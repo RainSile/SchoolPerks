@@ -92,10 +92,10 @@ campus:
     history-turns: ${ASSISTANT_HISTORY_TURNS:10}
     requests-per-minute: ${ASSISTANT_REQUESTS_PER_MINUTE:10}
     max-message-length: ${ASSISTANT_MAX_MESSAGE_LENGTH:2000}
-    max-tool-rounds: ${ASSISTANT_MAX_TOOL_ROUNDS:3}
-    max-tool-calls: ${ASSISTANT_MAX_TOOL_CALLS:5}
+    max-tool-rounds: ${ASSISTANT_MAX_TOOL_ROUNDS:16}
+    max-tool-calls: ${ASSISTANT_MAX_TOOL_CALLS:32}
     tool-timeout: ${ASSISTANT_TOOL_TIMEOUT:10s}
-    lease-ttl: ${ASSISTANT_LEASE_TTL:5m}
+    lease-ttl: ${ASSISTANT_LEASE_TTL:10m}
     retrieval-limit: ${ASSISTANT_RETRIEVAL_LIMIT:5}
     max-context-chars: ${ASSISTANT_MAX_CONTEXT_CHARS:6000}
   community:

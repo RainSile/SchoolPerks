@@ -60,3 +60,15 @@ Redis、MongoDB、RabbitMQ、Elasticsearch + 同完整版本 IK、地图、AI/Em
 ## 运行与数据边界
 
 公开注册创建普通用户；商家申请和平台权限按审核／授权流程管理。账号所属端和门店资源范围由后端验证，前端路由不能替代授权。生产环境应使用 HTTPS、正确的反向代理和独立凭据，并按需关闭在线 API 文档。不要上传数据库导出、用户文件、支付密钥或本机联调记录。
+
+<!-- campus-release-20261026-start -->
+## 智能助手、多步业务与权限修复
+
+现有 LangChain4j 1.22.0 SDK 提供上游流式回调，MVC 通过 SSE 发送；固定业务目录覆盖151项操作，转发当前真实 JWT，按 userId 与实际账号端隔离会话。写操作默认关闭，获得本条消息明确允许后执行，MySQL 日志保护重放与未知结果。
+
+实际 ADMIN 需要显式 business:manage 才能跨端，保留原身份、店主及成员关系；普通学生、商家与受限管理员的边界不扩大。V12 增加权限及写操作日志，已执行迁移不可修改，后续从 V13 追加。
+
+188项后端回归、真实模型四条业务链、真实浏览器优惠/地图旅程与JAR冒烟已验证；供应商未配置项仍保持默认关闭。仅用户自行准备私有环境后运行显式外部测试；公开仓库不带凭据、账号或运行日志。
+
+[助手业务 API 与权限](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ASSISTANT-BUSINESS-APIS.md) · [业务测试与修复报告](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/BUSINESS-TEST-RESULTS.md)
+<!-- campus-release-20261026-end -->

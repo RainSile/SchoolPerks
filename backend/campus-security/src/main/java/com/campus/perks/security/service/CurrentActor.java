@@ -32,7 +32,22 @@ public final class CurrentActor {
   }
 
   public static void requirePortal(AccountPortal portal) {
-    if (portal() != portal)
+    if (portal() != portal && !isBusinessAdministrator())
       throw new ApplicationException(HttpStatus.FORBIDDEN, "PORTAL_MISMATCH", "该账号不能访问其他端的功能");
+  }
+
+  public static boolean isBusinessAdministrator() {
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || !authentication.getName().matches("[1-9][0-9]{0,17}")) return false;
+    var permissions =
+        authentication.getAuthorities().stream()
+            .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+            .collect(java.util.stream.Collectors.toSet());
+    return permissions.contains(AccountPortal.ADMIN.authority())
+        && permissions.contains("business:manage")
+        && !permissions.contains(AccountPortal.USER.authority())
+        && !permissions.contains(AccountPortal.MERCHANT.authority());
   }
 }

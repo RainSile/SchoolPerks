@@ -70,7 +70,7 @@ public class DashboardServiceImpl implements DashboardService {
     if (!(auth instanceof JwtAuthenticationToken jwt))
       throw error(HttpStatus.UNAUTHORIZED, "INVALID_SESSION", "请重新登录");
     var state = sessions.load(CurrentActor.id(), jwt.getToken().getClaimAsString("sid"));
-    if (!state.active() || !state.accountType().equals(portal.name()))
+    if (!state.active() || !state.accountType().equals(CurrentActor.portal().name()))
       throw error(HttpStatus.UNAUTHORIZED, "INVALID_SESSION", "会话或账号授权已变更");
     return state;
   }

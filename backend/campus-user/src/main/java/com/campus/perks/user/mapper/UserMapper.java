@@ -7,6 +7,9 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface UserMapper {
+  @Select("SELECT code FROM campus_permission ORDER BY code")
+  List<String> allPermissionCodes();
+
   String COLUMNS =
       "SELECT u.id,u.phone,u.nickname,u.school_id,s.name AS"
           + " school_name,u.status,u.account_type,u.access_version FROM campus_user u LEFT JOIN"

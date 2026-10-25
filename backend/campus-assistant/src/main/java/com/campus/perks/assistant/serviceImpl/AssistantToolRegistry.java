@@ -32,8 +32,11 @@ public class AssistantToolRegistry implements ApplicationListener<WebServerIniti
   private final AssistantProperties p;
   private final HttpClient http;
   private volatile int port;
+  private final AssistantBusinessApiTools business;
 
-  public AssistantToolRegistry(ObjectMapper json, AssistantProperties p) {
+  public AssistantToolRegistry(
+      ObjectMapper json, AssistantProperties p, AssistantBusinessApiTools business) {
+    this.business = business;
     this.json = json;
     this.p = p;
     http =
@@ -151,17 +154,23 @@ public class AssistantToolRegistry implements ApplicationListener<WebServerIniti
   }
 
   public List<Tool> available() {
-    return definitions.stream().filter(this::allowed).map(Definition::tool).toList();
+    var result =
+        new ArrayList<>(definitions.stream().filter(this::allowed).map(Definition::tool).toList());
+    result.addAll(business.definitions());
+    return List.copyOf(result);
   }
 
   private boolean allowed(Definition d) {
-    if (CurrentActor.portal() != d.portal()) return false;
+    if (CurrentActor.portal() != d.portal() && !CurrentActor.isBusinessAdministrator())
+      return false;
     if (d.permission() == null) return true;
     return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
         .anyMatch(a -> a.getAuthority().equals(d.permission()));
   }
 
   public String execute(String name, String arguments) {
+    if (name.equals("business_api_catalog") || name.equals("execute_business_api"))
+      return business.execute(name, arguments);
     var d =
         definitions.stream()
             .filter(x -> x.tool().name().equals(name))
@@ -232,6 +241,13 @@ public class AssistantToolRegistry implements ApplicationListener<WebServerIniti
           "page",
           "size",
           "id",
+          "merchantId",
+          "schoolId",
+          "offerId",
+          "couponId",
+          "claimId",
+          "orderId",
+          "content",
           "name",
           "title",
           "offerTitle",

@@ -15,5 +15,14 @@ public interface AssistantService {
 
   com.campus.perks.assistant.vo.AssistantViews.Capabilities capabilities();
 
+  void validateStream(
+      String conversation, String key, com.campus.perks.assistant.dto.SendMessageRequest request);
+
+  Result stream(
+      String conversation,
+      String key,
+      com.campus.perks.assistant.dto.SendMessageRequest request,
+      java.util.function.BiConsumer<String, Object> events);
+
   record Result(com.campus.perks.assistant.vo.AssistantViews.Message value, boolean created) {}
 }

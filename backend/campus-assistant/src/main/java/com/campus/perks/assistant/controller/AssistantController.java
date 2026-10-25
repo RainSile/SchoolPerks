@@ -23,10 +23,27 @@ import org.springframework.web.bind.annotation.*;
 public class AssistantController {
   private final ObjectProvider<AssistantService> services;
   private final AssistantProperties p;
+  private final ObjectProvider<com.campus.perks.assistant.serviceImpl.AssistantApiCatalog> catalog;
 
-  public AssistantController(ObjectProvider<AssistantService> services, AssistantProperties p) {
+  public AssistantController(
+      ObjectProvider<AssistantService> services,
+      AssistantProperties p,
+      ObjectProvider<com.campus.perks.assistant.serviceImpl.AssistantApiCatalog> catalog) {
+    this.catalog = catalog;
     this.services = services;
     this.p = p;
+  }
+
+  @GetMapping("/business-apis")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(summary = "查询当前账号可用的助手业务API、所属端、权限与参数结构")
+  public ResponseEntity<?> businessApis() {
+    com.campus.perks.security.service.CurrentActor.id();
+    var value = catalog.getIfAvailable();
+    if (value == null)
+      throw new ApplicationException(
+          HttpStatus.SERVICE_UNAVAILABLE, "ASSISTANT_UNAVAILABLE", "助手尚未启用");
+    return ResponseEntity.ok().header("Cache-Control", "no-store").body(value.available());
   }
 
   private AssistantService service() {

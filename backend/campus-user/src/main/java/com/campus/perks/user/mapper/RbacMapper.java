@@ -25,7 +25,7 @@ public class RbacMapper {
                 + " campus_role r ON r.id=ur.role_id JOIN campus_role_permission rp ON"
                 + " rp.role_id=r.id JOIN campus_permission p ON p.id=rp.permission_id WHERE u.id=?"
                 + " AND u.account_type='ADMIN' AND u.status='ACTIVE' AND r.account_type='ADMIN' AND"
-                + " p.code='rbac:manage'",
+                + " p.code IN ('rbac:manage','business:manage')",
             Integer.class,
             id)
         > 0;
