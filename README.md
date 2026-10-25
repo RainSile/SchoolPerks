@@ -62,3 +62,13 @@ npm run preview
 ## 页面预览
 
 学生端、商家端、管理端与手机布局截图见 [项目首页](https://github.com/RainSile/SchoolPerks/tree/main#页面预览)。截图采用独立演示夹具，不含真实账号或业务数据。
+
+<!-- campus-release-20261026-start -->
+## 流式助手与交互验证
+
+助手支持真正的 SSE 增量、Markdown 标题/列表/表格/代码及安全链接、停止输出、账号切换清除、每条消息明确允许业务写操作。HTML 与远程图片禁用，渲染经过 DOMPurify。前端路由仍按真实账号类型进入独立端。
+
+新增依赖精确锁定于 package.json/package-lock.json；11组浏览器检查和生产构建通过。测试夹具与真实供应商验收分别记录，不把模拟响应当作真实支付/短信结果。
+
+[助手业务 API 与权限](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ASSISTANT-BUSINESS-APIS.md) · [业务测试与修复报告](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/BUSINESS-TEST-RESULTS.md)
+<!-- campus-release-20261026-end -->

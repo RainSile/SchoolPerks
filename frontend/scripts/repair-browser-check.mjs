@@ -31,6 +31,15 @@ try {
     if (path === '/assistant/capabilities') return respond({ enabled: true, accountType: type, maxMessageLength: 2000, timeoutSeconds: 10, tools: [] })
     if (path === '/assistant/conversations' && method === 'POST') { const id = `conversation-${actor()}`; conversations.set(id, []); return respond({ id, accountType: type }, 201) }
     const messages = path.match(/^\/assistant\/conversations\/([^/]+)\/messages$/)
+    const stream = path.match(/^\/assistant\/conversations\/([^/]+)\/message-streams$/)
+    if (stream) {
+      assert.equal(stream[1], `conversation-${actor()}`)
+      assert.ok(req.headers()['idempotency-key'])
+      const row = { id: `message-${actor()}`, conversationId: stream[1], status: 'COMPLETED', question: req.postDataJSON().message, reply: '<script>window.__assistantXss=1</script> 安全回答', tools: [], sources: [], errorCode: null }
+      conversations.get(stream[1]).push(row)
+      const frame = (event, data) => `event:${event}\ndata:${JSON.stringify(data)}\n\n`
+      return route.fulfill({ status: 200, contentType: 'text/event-stream', body: frame('round', { round: 1 }) + frame('delta', { text: row.reply }) + frame('completed', row) })
+    }
     if (messages) {
       assert.equal(messages[1], `conversation-${actor()}`, 'Conversation must stay scoped to the active identity')
       if (method === 'GET') return respond(conversations.get(messages[1]) || [])
