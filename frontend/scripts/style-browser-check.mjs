@@ -82,9 +82,9 @@ try {
     await footer.scrollIntoViewIfNeeded()
     await footer.locator('img').evaluateAll(imgs => Promise.all(imgs.map(img => img.decode())))
     const state = await footer.evaluate(el => {
-      const img=el.querySelector('.campus-footer-art'), ground=el.querySelector('.campus-footer-landscape')
+      const img=el.querySelector('.campus-footer-art'), ground=el.querySelector('.campus-footer-landscape'), panorama=el.querySelector('.campus-footer-panorama')
       const art=img.getBoundingClientRect(), scene=el.querySelector('.campus-footer-scene').getBoundingClientRect()
-      return { loaded:[img,ground].every(i=>i.complete && i.naturalWidth>0),separate:img.currentSrc!==ground.currentSrc,cover:getComputedStyle(ground).objectFit,ratio:art.width/art.height,naturalRatio:img.naturalWidth/img.naturalHeight,opacity:Number(getComputedStyle(img).opacity),landscapeOpacity:Number(getComputedStyle(ground).opacity),blend:getComputedStyle(el.querySelector('.campus-footer-scene'),'::after').backgroundImage,groundWidth:ground.getBoundingClientRect().width,groundHeight:ground.getBoundingClientRect().height,left:art.left,right:art.right,top:art.top,bottom:art.bottom,sceneTop:scene.top,sceneBottom:scene.bottom,footerHeight:el.getBoundingClientRect().height,contentHeight:el.querySelector('.site-footer').getBoundingClientRect().height }
+      return { loaded:[img,panorama].every(i=>i.complete && i.naturalWidth>0),separate:img.currentSrc!==panorama.currentSrc,cover:getComputedStyle(panorama).objectFit,ratio:art.width/art.height,naturalRatio:img.naturalWidth/img.naturalHeight,opacity:Number(getComputedStyle(img).opacity),landscapeOpacity:Number(getComputedStyle(ground).opacity),blend:getComputedStyle(el.querySelector('.campus-footer-scene'),'::after').backgroundImage,groundWidth:ground.getBoundingClientRect().width,groundHeight:ground.getBoundingClientRect().height,left:art.left,right:art.right,top:art.top,bottom:art.bottom,sceneTop:scene.top,sceneBottom:scene.bottom,footerHeight:el.getBoundingClientRect().height,contentHeight:el.querySelector('.site-footer').getBoundingClientRect().height }
     })
     assert.ok(state.loaded,'Footer illustration loads')
     assert.ok(state.separate,'Landscape and people must use independent images')

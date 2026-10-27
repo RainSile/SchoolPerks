@@ -7,7 +7,12 @@ import campusPeople from '../assets/campus-footer-people.webp'
 <template>
   <footer class="campus-footer">
     <div class="campus-footer-scene" aria-hidden="true">
-      <img class="campus-footer-landscape" :src="campusLandscape" alt="" width="2160" height="720" loading="lazy" decoding="async" />
+      <div class="campus-footer-landscape">
+        <img class="campus-footer-panorama" :src="campusLandscape" alt="" width="2160" height="720" decoding="async" />
+        <svg class="campus-footer-pavement" viewBox="0 640 2160 80" preserveAspectRatio="xMidYMax slice" focusable="false">
+          <image :href="campusLandscape" width="2160" height="720" />
+        </svg>
+      </div>
       <img
         class="campus-footer-art"
         :src="campusPeople"
@@ -57,17 +62,35 @@ import campusPeople from '../assets/campus-footer-people.webp'
   background: linear-gradient(to bottom, var(--campus-ground), transparent 82px);
 }
 
-/* Landscape covers the whole bar; the separate people layer never stretches. */
+/* Keep the panorama on mobile; the desktop viewport shows only foreground pavement. */
 .campus-footer-landscape {
   position: absolute;
   inset: 0;
   z-index: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  /* Anchor the walkway under the feet when wide footers crop the landscape. */
-  object-position: center bottom;
   opacity: .13;
+}
+
+.campus-footer-panorama,
+.campus-footer-pavement {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.campus-footer-panorama {
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+.campus-footer-pavement {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .campus-footer-panorama { display: none; }
+  .campus-footer-pavement { display: block; }
 }
 
 .campus-footer-art {
