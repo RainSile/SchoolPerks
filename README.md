@@ -96,7 +96,15 @@ git clone --branch campus-backend --single-branch https://github.com/RainSile/Sc
 
 智能助手新增真正的流式输出、安全 Markdown、多步业务操作和明确的角色权限。平台管理员可在显式授权后跨端调用业务 API，个人会话继续隔离。
 
-本轮修复搜索重建测试隔离、管理员跨端二次校验与内部守卫等问题，188项后端检查、11组浏览器检查、真实优惠/地图旅程及真实模型四条链路通过。真实短信、MinIO、支付宝沙箱及其他未覆盖分支仍需专项验收。
+本轮修复搜索重建测试隔离、管理员跨端二次校验与内部守卫等问题，188项后端检查、11组浏览器检查、真实优惠/地图旅程及真实模型四条链路通过。MinIO已在2026-10-27完成下述真实存储专项；真实短信、支付宝沙箱及其他未覆盖分支仍需专项验收。
 
 [助手业务 API 与权限](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ASSISTANT-BUSINESS-APIS.md) · [业务测试与修复报告](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/BUSINESS-TEST-RESULTS.md)
 <!-- campus-release-20261026-end -->
+
+<!-- campus-minio-20261027-start -->
+## MinIO已接入
+
+商家资质和社区图片已接入私有MinIO，支持真实上传、封存与权限控制下载。轻量部署使用256MiB内存上限、1GiB桶配额，实测约106MiB；发布前30项相关检查通过，数据库56表摘要一致。
+
+[部署与业务验证](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/MINIO-SETUP.md) · [后端部署模板](https://github.com/RainSile/SchoolPerks/blob/campus-backend/deploy/minio/README.md)
+<!-- campus-minio-20261027-end -->
