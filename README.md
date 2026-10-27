@@ -50,3 +50,9 @@ git clone --branch campus-doc --single-branch https://github.com/RainSile/School
 
 [MinIO部署、配置与真实业务验证](docs/MINIO-SETUP.md)记录轻量部署与文件权限。实际存储专项5项及相关回归共30项通过，56表摘要一致；不代替全部业务终验。部署模板及浏览器专项脚本位于campus-backend分支，原始日志、凭据和个人材料不发布。
 <!-- campus-minio-20261027-end -->
+
+<!-- campus-alipay-20261027-start -->
+## 支付宝沙箱配置验证
+
+[配置、验证与待启用条件](docs/ALIPAY-SANDBOX-SETUP.md)：2项真实只读检查、33项相关回归通过。凭据留在私有环境；公网HTTPS后端通知入口尚待部署，完整付款/通知/退款仍待验收。
+<!-- campus-alipay-20261027-end -->
