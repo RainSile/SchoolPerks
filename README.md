@@ -72,3 +72,13 @@ npm run preview
 
 [助手业务 API 与权限](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ASSISTANT-BUSINESS-APIS.md) · [业务测试与修复报告](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/BUSINESS-TEST-RESULTS.md)
 <!-- campus-release-20261026-end -->
+
+<!-- campus-cloud-20261028-start -->
+## 云端部署与沙箱回调验收
+
+前后端及独立 MySQL 已部署，原中间件保留并通过配置化加密连接访问。真实 0.01 元沙箱付款、HTTPS 签名回调与正常业务退款已通过，临时验收权限已清理；本机源库 56 表摘要未改变。
+
+[部署与迁移](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/CLOUD-DEPLOYMENT.md) · [部署验收与覆盖边界](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/CLOUD-ACCEPTANCE.md) · [实际支付及退款](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ALIPAY-CLOUD-ACCEPTANCE.md)
+
+网页收银台账号密码方式的供应商安全组件异常、真实短信待接入仍单独记录。付款由真实沙箱钱包完成，不以接口配置成功代替付款。服务器地址、密钥、账号及数据库备份均不进入源码；业务参数通过私有配置修改。
+<!-- campus-cloud-20261028-end -->

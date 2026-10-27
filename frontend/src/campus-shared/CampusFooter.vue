@@ -65,7 +65,8 @@ import campusPeople from '../assets/campus-footer-people.webp'
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 76%;
+  /* Anchor the walkway under the feet when wide footers crop the landscape. */
+  object-position: center bottom;
   opacity: .13;
 }
 
@@ -78,7 +79,7 @@ import campusPeople from '../assets/campus-footer-people.webp'
   display: block;
   width: auto;
   height: min(180px, calc(100% - 12px), calc((100vw - 36px) * 661 / 1200));
-  opacity: .24;
+  opacity: .33;
   object-fit: contain;
   object-position: center bottom;
 }

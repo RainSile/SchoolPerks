@@ -1,4 +1,13 @@
 {
-  "prompt": "Use case: background-extraction. Edit target: the provided campus illustration. Produce a transparent foreground cutout containing only the SAME two university students, their bicycle, takeaway coffee and blank ticket. Preserve their exact identities, facial appearance, clothing, poses, proportions and watercolor editorial rendering. Keep both students fully visible from hair to shoes, bicycle wheels completely intact. Remove the campus gate, trees, shrubs and all background scenery. No ground rectangle, no shadow plate, no added subjects or text. Genuine transparent alpha around and between the figures and bicycle spokes. The two students are the primary subject. This will be an independent foreground layer over a separate footer landscape. Do not render a website or UI.\n",
-  "createdAt": "2026-10-24T19:52:59.909Z"
+  "generator": "Original artwork generated with built-in image_gen; the user-confirmed supplied PNG is used without further generative editing.",
+  "createdAt": "2026-10-27",
+  "source": "User-confirmed final two-character image; this explicit selection supersedes intermediate pose/expression/accessory variants.",
+  "composition": "White-uniform dragon character and purple-uniform cat-eared character walking to the right, holding hands and looking at each other. Preserve the exact faces, hair ornaments, uniforms and leg poses of the selected image.",
+  "processing": "Proportional encoding to the existing 1200 x 661 transparent WebP. Character design is not redrawn or altered.",
+  "format": "webp",
+  "width": 1200,
+  "height": 661,
+  "hasAlpha": true,
+  "displayOpacity": 0.33,
+  "bytes": 234802
 }

@@ -91,7 +91,7 @@ try {
     assert.equal(state.cover,'cover','Landscape fills the footer instead of shrinking into the middle')
     assert.ok(state.opacity>0 && state.opacity<=.35,'People remain a quiet footer background layer')
     assert.equal(state.landscapeOpacity,.13,'Use the user-selected 13% landscape opacity')
-    assert.equal(state.opacity,.24,'Preserve the people layer at 24%')
+    assert.equal(state.opacity,.33,'Use the user-selected 33% people opacity')
     assert.ok(state.blend.startsWith('linear-gradient'),'Blend the background into the light main surface')
     assert.ok(Math.abs(state.groundHeight-state.footerHeight)<1,'Landscape covers the entire footer height')
     assert.ok(Math.abs(state.footerHeight-state.contentHeight)<1,'Background artwork adds no separate footer band')
