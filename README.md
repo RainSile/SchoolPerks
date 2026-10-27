@@ -51,8 +51,12 @@ git clone --branch campus-doc --single-branch https://github.com/RainSile/School
 [MinIO部署、配置与真实业务验证](docs/MINIO-SETUP.md)记录轻量部署与文件权限。实际存储专项5项及相关回归共30项通过，56表摘要一致；不代替全部业务终验。部署模板及浏览器专项脚本位于campus-backend分支，原始日志、凭据和个人材料不发布。
 <!-- campus-minio-20261027-end -->
 
-<!-- campus-alipay-20261027-start -->
-## 支付宝沙箱配置验证
+<!-- campus-cloud-20261028-start -->
+## 云端部署与沙箱回调验收
 
-[配置、验证与待启用条件](docs/ALIPAY-SANDBOX-SETUP.md)：2项真实只读检查、33项相关回归通过。凭据留在私有环境；公网HTTPS后端通知入口尚待部署，完整付款/通知/退款仍待验收。
-<!-- campus-alipay-20261027-end -->
+前后端及独立 MySQL 已部署，原中间件保留并通过配置化加密连接访问。真实 0.01 元沙箱付款、HTTPS 签名回调与正常业务退款已通过，临时验收权限已清理；本机源库 56 表摘要未改变。
+
+[部署与迁移](docs/CLOUD-DEPLOYMENT.md) · [部署验收与覆盖边界](docs/CLOUD-ACCEPTANCE.md) · [实际支付及退款](docs/ALIPAY-CLOUD-ACCEPTANCE.md)
+
+网页收银台账号密码方式的供应商安全组件异常、真实短信待接入仍单独记录。付款由真实沙箱钱包完成，不以接口配置成功代替付款。服务器地址、密钥、账号及数据库备份均不进入源码；业务参数通过私有配置修改。
+<!-- campus-cloud-20261028-end -->
