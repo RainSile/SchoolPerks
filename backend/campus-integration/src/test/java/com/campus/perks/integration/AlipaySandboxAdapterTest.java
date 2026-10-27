@@ -120,4 +120,11 @@ class AlipaySandboxAdapterTest {
     assertThatThrownBy(() -> disabled.checkout("CP123", BigDecimal.ONE, "test", Instant.now()))
         .hasMessageContaining("尚未配置");
   }
+
+  @Test
+  void sandboxConfigurationNeverPrintsCredentials() {
+    assertThat(config("https://openapi.alipaydev.com/gateway.do", true).toString())
+        .contains("REDACTED")
+        .doesNotContain(privateKey, publicKey, "test-app", "test-seller");
+  }
 }

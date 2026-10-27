@@ -20,6 +20,7 @@ $settings=@{
  REDIS_ENABLED='false';MONGO_ENABLED='false';RABBITMQ_ENABLED='false';AMAP_ENABLED='false';MINIO_ENABLED='false'
  AUTH_ENABLED='false';JWT_ENABLED='false';SMS_SIMULATED_ENABLED='false';SEARCH_BACKEND='MYSQL'
  NOTIFICATION_DISPATCH_ENABLED='false';SEARCH_REBUILD_ENABLED='false';TRADE_SCHEDULER_ENABLED='false'
+ ALIPAY_SANDBOX_ENABLED='false';CAMPUS_ALIPAY_LIVE_TEST='false'
 }
 $saved=@{};$present=@{};$testExit=1
 if($UseObjectStorageConfiguration){

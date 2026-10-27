@@ -13,4 +13,9 @@ public record AlipaySandboxProperties(
     String publicKey,
     String notifyUrl,
     Duration connectTimeout,
-    Duration readTimeout) {}
+    Duration readTimeout) {
+  @Override
+  public String toString() {
+    return "AlipaySandboxProperties[enabled=" + enabled + ", credentials=REDACTED]";
+  }
+}
