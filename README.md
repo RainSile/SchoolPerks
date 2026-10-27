@@ -44,3 +44,9 @@ git clone --branch campus-doc --single-branch https://github.com/RainSile/School
 
 报告只公开脱敏技术汇总，原始日志、数据库快照、账号、密钥、本机配置、学术材料和私人待办均不公开。历史首轮与最新修复状态在报告中分别注明。
 <!-- campus-release-20261026-end -->
+
+<!-- campus-minio-20261027-start -->
+## 私有对象存储专项
+
+[MinIO部署、配置与真实业务验证](docs/MINIO-SETUP.md)记录轻量部署与文件权限。实际存储专项5项及相关回归共30项通过，56表摘要一致；不代替全部业务终验。部署模板及浏览器专项脚本位于campus-backend分支，原始日志、凭据和个人材料不发布。
+<!-- campus-minio-20261027-end -->

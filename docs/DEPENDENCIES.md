@@ -1,5 +1,9 @@
 # 依赖版本与兼容性记录
 
+## 2026-10-27 MinIO实际接入
+
+MinIO Java8.6.0由external-sdks移至普通integration依赖，确保真实适配器进入默认JAR。OkHttp5.1.0与Kotlin2.2.0保持原版本，未引入第二套HTTP或签名SDK。Java17默认打包、真实上传/封存/下载及external-sdks基础合同和SDK共同加载均通过。服务器固定官方RELEASE.2025-10-15T17-29-55Z源码提交，部署初始化依赖由其自带Go模块锁定；与Maven依赖分别管理。详见[MinIO接入](MINIO-SETUP.md)，以下历史记录以本节及当前POM为准。
+
 ## 2026-10-26 助手增量
 
 Maven版本保持现有锁定组合，LangChain4j 1.22.0现有OpenAI适配依赖已包含OpenAiStreamingChatModel，无新增流式SDK或版本浮动。Java17编译、打包、真实provider流式回调及多步函数调用已验证。MVC使用现有SseEmitter，无需引入第二套WebFlux服务。
@@ -24,7 +28,7 @@ Maven版本保持现有锁定组合，LangChain4j 1.22.0现有OpenAI适配依赖
 | springdoc | 2.8.17 | Boot 3.5 对应 2.8.x；Swagger annotations 跟随它 |
 | Knife4j UI | 4.5.0 | 官方 `com.github.xiaoymin:knife4j-openapi3-ui` |
 | LangChain4j BOM | 1.22.0 | langchain4j 与 open-ai 1.22.0；pinecone 1.22.0-beta32 |
-| MinIO | 8.6.0 | 仅 external-sdks profile 加入 |
+| MinIO | 8.6.0 | 普通integration依赖；适配器由MINIO_ENABLED显式启用 |
 | OkHttp BOM | 5.1.0 | 与 MinIO POM 对齐，统一 Pinecone 的 logging-interceptor，并引入 okhttp-jvm |
 | Kotlin runtime | 2.2.0 | 与 OkHttp JVM 5.1.0 POM 对齐，覆盖 Boot 的 1.9.25 |
 | JWT | Spring Security OAuth2 Resource Server / JOSE | 跟随 Boot，不另加 JJWT 重复栈 |
