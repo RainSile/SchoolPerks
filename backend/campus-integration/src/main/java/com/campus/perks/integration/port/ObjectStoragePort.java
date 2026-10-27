@@ -9,7 +9,7 @@ import java.time.Duration;
 public interface ObjectStoragePort {
   boolean available();
 
-  URI createUploadUrl(String stagingKey, String contentType, Duration expiry);
+  URI createUploadUrl(String stagingKey, String contentType, long size, Duration expiry);
 
   /** Copy staging bytes to a new immutable key, then inspect the copy, not the mutable source. */
   StoredObject seal(String stagingKey, String immutableKey);

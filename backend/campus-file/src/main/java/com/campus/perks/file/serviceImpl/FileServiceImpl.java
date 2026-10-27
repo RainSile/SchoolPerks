@@ -94,7 +94,7 @@ public class FileServiceImpl implements FileService, FileAccessPort {
     String immutable = p.objectPrefix() + "/sealed/" + UUID.randomUUID();
     URI upload;
     try {
-      upload = url(storage.createUploadUrl(staging, r.contentType(), p.uploadTtl()));
+      upload = url(storage.createUploadUrl(staging, r.contentType(), r.size(), p.uploadTtl()));
     } catch (ApplicationException e) {
       throw e;
     } catch (RuntimeException e) {
@@ -144,8 +144,14 @@ public class FileServiceImpl implements FileService, FileAccessPort {
         || object.size() != file.declaredSize()
         || object.size() > p.maxBytes()
         || !file.contentType().equals(object.contentType())
-        || !signature(object.contentType(), object.prefix()))
+        || !signature(object.contentType(), object.prefix())) {
+      try {
+        storage.delete(file.immutableKey());
+      } catch (RuntimeException ignored) {
+        // A failed cleanup must never turn an unverified object into an accessible READY file.
+      }
       throw error(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STORED_FILE", "实际文件大小、类型或内容签名不匹配");
+    }
     files.complete(id, clock.instant());
     audit.record(owner, "FILE_UPLOAD_COMPLETED", "FILE", id, Map.of("purpose", file.purpose()));
     return view(files.find(id));

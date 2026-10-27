@@ -5,6 +5,7 @@ import com.campus.perks.integration.port.ObjectStoragePort;
 import java.net.URI;
 import java.time.Duration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpStatus;
 
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 public class ObjectStorageConfiguration {
   @Bean
   @ConditionalOnMissingBean(ObjectStoragePort.class)
+  @ConditionalOnProperty(name = "campus.integrations.minio.enabled", havingValue = "false", matchIfMissing = true)
   ObjectStoragePort unavailableObjectStorage() {
     return new ObjectStoragePort() {
       private ApplicationException unavailable() {
@@ -23,7 +25,7 @@ public class ObjectStorageConfiguration {
         return false;
       }
 
-      public URI createUploadUrl(String key, String type, Duration expiry) {
+      public URI createUploadUrl(String key, String type, long size, Duration expiry) {
         throw unavailable();
       }
 

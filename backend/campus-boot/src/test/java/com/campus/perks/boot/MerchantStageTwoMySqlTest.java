@@ -149,7 +149,7 @@ class MerchantStageTwoMySqlTest {
             "application/pdf",
             "%PDF-1.7".getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
     when(storage.available()).thenReturn(true);
-    when(storage.createUploadUrl(anyString(), anyString(), any()))
+    when(storage.createUploadUrl(anyString(), anyString(), anyLong(), any()))
         .thenReturn(URI.create("https://storage.invalid/pending?signature=test"));
     when(storage.createDownloadUrl(anyString(), any()))
         .thenReturn(URI.create("https://storage.invalid/private?signature=test"));
@@ -378,7 +378,7 @@ class MerchantStageTwoMySqlTest {
         .andExpect(status().isTooManyRequests());
     clock.advance(Duration.ofMinutes(6));
     complete(id, ownerA).andExpect(status().isGone());
-    when(storage.createUploadUrl(anyString(), anyString(), any()))
+    when(storage.createUploadUrl(anyString(), anyString(), anyLong(), any()))
         .thenReturn(URI.create("javascript:alert(1)"));
     post(
             "/uploads",

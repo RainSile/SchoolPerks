@@ -2,11 +2,22 @@ package com.campus.perks.integration.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/** 配置契约；当前没有创建客户端的自动配置。 */
+/** External provider settings; credentials must never appear in diagnostic strings. */
 @ConfigurationProperties(prefix = "campus.integrations")
 public record IntegrationProperties(Minio minio, Ai ai, Pinecone pinecone) {
   public record Minio(
-      boolean enabled, String endpoint, String accessKey, String secretKey, String bucket) {
+      boolean enabled,
+      String endpoint,
+      String publicEndpoint,
+      String accessKey,
+      String secretKey,
+      String bucket,
+      String region,
+      java.time.Duration connectTimeout,
+      java.time.Duration readTimeout,
+      java.time.Duration writeTimeout,
+      java.time.Duration callTimeout,
+      long maxObjectBytes) {
     @Override
     public String toString() {
       return "Minio[REDACTED]";

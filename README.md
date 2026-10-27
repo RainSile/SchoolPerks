@@ -72,3 +72,13 @@ Redis、MongoDB、RabbitMQ、Elasticsearch + 同完整版本 IK、地图、AI/Em
 
 [助手业务 API 与权限](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ASSISTANT-BUSINESS-APIS.md) · [业务测试与修复报告](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/BUSINESS-TEST-RESULTS.md)
 <!-- campus-release-20261026-end -->
+
+<!-- campus-minio-20261027-start -->
+## MinIO真实业务接入
+
+商家资质与社区图片已接入真正的MinIO适配器，支持绑定类型/长度的直传签名、封存检查、业务授权及短签下载。MinIO Java SDK固定8.6.0，随普通构建打包；默认MINIO_ENABLED=false，私有账号由环境注入。
+
+[轻量部署](deploy/minio/README.md) · [应用变量](deploy/minio/backend.env.example) · [验证记录](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/MINIO-SETUP.md)
+
+发布前30项相关检查通过：真实存储业务5项、商家回归14项、适配器4项和基础合同7项；数据库56表摘要一致。scripts/minio-live-browser-check.mjs随本分支提供，复验需准备Node、Playwright、Chrome及私有存储转发；不需要检出前端源码。
+<!-- campus-minio-20261027-end -->

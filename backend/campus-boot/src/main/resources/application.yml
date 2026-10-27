@@ -220,11 +220,18 @@ campus:
       timeout: ${AMAP_TIMEOUT:10s}
       requests-per-minute: ${AMAP_REQUESTS_PER_MINUTE:120}
     minio:
-      enabled: false
+      enabled: ${MINIO_ENABLED:false}
       endpoint: ${MINIO_ENDPOINT:}
+      public-endpoint: ${MINIO_PUBLIC_ENDPOINT:${MINIO_ENDPOINT:}}
       access-key: ${MINIO_ACCESS_KEY:}
       secret-key: ${MINIO_SECRET_KEY:}
       bucket: ${MINIO_BUCKET:}
+      region: ${MINIO_REGION:us-east-1}
+      connect-timeout: ${MINIO_CONNECT_TIMEOUT:3s}
+      read-timeout: ${MINIO_READ_TIMEOUT:10s}
+      write-timeout: ${MINIO_WRITE_TIMEOUT:10s}
+      call-timeout: ${MINIO_CALL_TIMEOUT:15s}
+      max-object-bytes: ${FILE_MAX_BYTES:10485760}
     ai:
       enabled: ${AI_ENABLED:false}
       base-url: ${AI_BASE_URL:}

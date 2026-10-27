@@ -9,6 +9,7 @@
   </parent>
   <artifactId>campus-integration</artifactId>
   <dependencies>
+    <dependency><groupId>io.minio</groupId><artifactId>minio</artifactId></dependency>
     <!-- Versions are managed by Spring Boot; no starters probe absent services. -->
     <dependency><groupId>io.lettuce</groupId><artifactId>lettuce-core</artifactId></dependency>
     <dependency><groupId>org.mongodb</groupId><artifactId>mongodb-driver-sync</artifactId></dependency>
@@ -55,10 +56,6 @@
     <profile>
       <id>external-sdks</id>
       <dependencies>
-        <dependency>
-          <groupId>io.minio</groupId>
-          <artifactId>minio</artifactId>
-        </dependency>
         <dependency>
           <groupId>dev.langchain4j</groupId>
           <artifactId>langchain4j-pinecone</artifactId>
