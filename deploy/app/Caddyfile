@@ -1,0 +1,49 @@
+{
+    admin 127.0.0.1:2019
+    default_sni {$PUBLIC_HOST}
+    servers {
+        protocols h1 h2
+    }
+}
+
+https://{$PUBLIC_HOST} {
+    tls {
+        issuer acme {
+            dir {$ACME_DIRECTORY}
+            profile {$ACME_PROFILE}
+        }
+    }
+    encode gzip
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        X-Frame-Options SAMEORIGIN
+    }
+    @api path /api /api/*
+    handle @api {
+        reverse_proxy {$BACKEND_UPSTREAM} {
+            flush_interval -1
+        }
+    }
+    # Preserve the original browser Host and bucket path for S3 SigV4 validation.
+    @storage path /{$MINIO_BUCKET}/*
+    handle @storage {
+        reverse_proxy {$MINIO_UPSTREAM} {
+            header_up Host {http.request.host}
+            flush_interval -1
+        }
+    }
+    @private path /actuator /actuator/* /v3/api-docs /v3/api-docs/* /doc.html /swagger-ui/* /swagger-resources/*
+    handle @private {
+        respond 404
+    }
+    handle {
+        root * {$FRONTEND_ROOT}
+        @assets path /assets/*
+        header @assets Cache-Control "public, max-age=31536000, immutable"
+        @html path / /index.html
+        header @html Cache-Control "no-cache"
+        try_files {path} /index.html
+        file_server
+    }
+}

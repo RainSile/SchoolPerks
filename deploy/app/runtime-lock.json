@@ -1,0 +1,18 @@
+{
+  "caddy": {
+    "sha256": "727b91701a392de6ebc5027509f548bf39979e5216340d0faed8fa5e69c84f8b",
+    "version": "v2.11.7",
+    "url": "https://github.com/caddyserver/caddy/releases/download/v2.11.7/caddy_2.11.7_linux_amd64.tar.gz"
+  },
+  "mysql": {
+    "version": "8.0.46",
+    "url": "https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.46-linux-glibc2.17-x86_64-minimal.tar.xz",
+    "officialMd5": "d8ec6c48d02e88759eef61c51a6da07d",
+    "sha256": "e2777d490fcaadc5a4be06db89b6935c78909bd9c3382af859ab284af0c950b0"
+  },
+  "java": {
+    "sha256": "9f41bf88c7900c7097444a1bdeb84146ae692bc08842490ab098063c74bf9a8a",
+    "version": "jdk-17.0.21+9",
+    "url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.21%2B9/OpenJDK17U-jre_x64_linux_hotspot_17.0.21_9.tar.gz"
+  }
+}

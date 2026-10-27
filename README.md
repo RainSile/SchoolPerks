@@ -83,12 +83,12 @@ Redis、MongoDB、RabbitMQ、Elasticsearch + 同完整版本 IK、地图、AI/Em
 发布前30项相关检查通过：真实存储业务5项、商家回归14项、适配器4项和基础合同7项；数据库56表摘要一致。scripts/minio-live-browser-check.mjs随本分支提供，复验需准备Node、Playwright、Chrome及私有存储转发；不需要检出前端源码。
 <!-- campus-minio-20261027-end -->
 
-<!-- campus-alipay-20261027-start -->
-## 支付宝沙箱配置验证
+<!-- campus-cloud-20261028-start -->
+## 云端部署与沙箱回调验收
 
-已完成本机私有沙箱配置及真实签名查询、响应RSA2验签，2项真实检查和33项相关回归通过，56表摘要一致。配置类输出脱敏，普通业务回归显式禁用真实支付检查；可选AlipaySandboxLiveTest只查询随机不存在订单，不创建交易。
+前后端及独立 MySQL 已部署，原中间件保留并通过配置化加密连接访问。真实 0.01 元沙箱付款、HTTPS 签名回调与正常业务退款已通过，临时验收权限已清理；本机源库 56 表摘要未改变。
 
-当前支付保持关闭，待公网HTTPS后端回调入口部署后启用并验收完整付款/通知/退款。公开仓库只提供源码与说明，真实应用/商家标识、密钥和账号留在私有配置。
+[部署与迁移](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/CLOUD-DEPLOYMENT.md) · [部署验收与覆盖边界](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/CLOUD-ACCEPTANCE.md) · [实际支付及退款](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ALIPAY-CLOUD-ACCEPTANCE.md)
 
-[支付宝沙箱配置与验证](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ALIPAY-SANDBOX-SETUP.md)
-<!-- campus-alipay-20261027-end -->
+网页收银台账号密码方式的供应商安全组件异常、真实短信待接入仍单独记录。付款由真实沙箱钱包完成，不以接口配置成功代替付款。服务器地址、密钥、账号及数据库备份均不进入源码；业务参数通过私有配置修改。部署模板见 [deploy/app](deploy/app/)。
+<!-- campus-cloud-20261028-end -->

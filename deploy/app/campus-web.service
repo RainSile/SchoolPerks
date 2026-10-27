@@ -1,0 +1,28 @@
+[Unit]
+Description=Campus Perks HTTPS and static frontend
+After=network-online.target campus-backend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=campus-web
+Group=campus-web
+EnvironmentFile=/opt/campus-perks-app/private/runtime.env
+ExecStart=/opt/campus-perks-app/runtime/bin/caddy run --config /opt/campus-perks-app/config/Caddyfile --adapter caddyfile
+ExecReload=/opt/campus-perks-app/runtime/bin/caddy reload --config /opt/campus-perks-app/config/Caddyfile --adapter caddyfile
+Restart=on-failure
+RestartSec=5
+MemoryLimit=192M
+CPUQuota=50%
+LimitNOFILE=8192
+UMask=0077
+# CentOS7 systemd lacks AmbientCapabilities. The verified binary receives only
+# cap_net_bind_service via setcap; this unit runs as a dedicated non-login user.
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWriteDirectories=/opt/campus-perks-app/data/web /opt/campus-perks-app/data/web-config
+
+[Install]
+WantedBy=multi-user.target

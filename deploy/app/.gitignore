@@ -1,0 +1,12 @@
+*.env
+!*.env.example
+artifacts/
+private/
+data/
+logs/
+runtime/
+releases/
+*.sql
+*.gz
+*.tar
+*.xz

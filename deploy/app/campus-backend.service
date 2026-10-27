@@ -1,0 +1,29 @@
+[Unit]
+Description=Campus Perks Java backend
+After=network-online.target campus-mysql.service campus-infra-tunnel.service
+Wants=network-online.target campus-infra-tunnel.service
+
+[Service]
+Type=simple
+User=campus-app
+Group=campus-app
+EnvironmentFile=/opt/campus-perks-app/private/runtime.env
+EnvironmentFile=/opt/campus-perks-app/private/backend.env
+ExecStart=/opt/campus-perks-app/config/run-backend.sh
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=35
+SuccessExitStatus=143
+MemoryLimit=896M
+CPUQuota=150%
+TasksMax=256
+LimitNOFILE=8192
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWriteDirectories=/opt/campus-perks-app/data
+
+[Install]
+WantedBy=multi-user.target
