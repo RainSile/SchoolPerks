@@ -1,5 +1,16 @@
 # SchoolPerks 后端
 
+<!-- campus-sms-20261028-start -->
+## 阿里云号码认证短信已接入
+
+注册、验证码登录、找回密码已使用 PNVS 生成与核验，独立用途、一次性消费、手机号绑定及错误次数保护保留。28项认证数据库测试、3次真实短信业务验证及完整SDK回归通过；测试数据回滚，密钥与真实测试手机号不公开。
+
+公开配置默认关闭，本机私有配置已准备；本次代码发布没有替换当前云端部署。上线需部署包含V13的新包并注入私有短信配置，生产不返回验证码且不自动更换指定签名。
+
+[接入、配置、测试与费用边界](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ALIYUN-PNVS-SETUP.md)
+<!-- campus-sms-20261028-end -->
+
+
 Java 17 + Spring Boot 3 的校园周边优惠平台后端，采用 `campus-*` Maven 多模块组织，提供 REST API、OpenAPI/Knife4j 和三端账号权限校验。
 
 ## 仓库分支
@@ -90,5 +101,5 @@ Redis、MongoDB、RabbitMQ、Elasticsearch + 同完整版本 IK、地图、AI/Em
 
 [部署与迁移](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/CLOUD-DEPLOYMENT.md) · [部署验收与覆盖边界](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/CLOUD-ACCEPTANCE.md) · [实际支付及退款](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ALIPAY-CLOUD-ACCEPTANCE.md)
 
-网页收银台账号密码方式的供应商安全组件异常、真实短信待接入仍单独记录。付款由真实沙箱钱包完成，不以接口配置成功代替付款。服务器地址、密钥、账号及数据库备份均不进入源码；业务参数通过私有配置修改。部署模板见 [deploy/app](deploy/app/)。
+网页收银台账号密码方式的供应商安全组件异常单独记录；短信后续实现与真实专项见本文顶部，公网更新另行执行。付款由真实沙箱钱包完成，不以接口配置成功代替付款。服务器地址、密钥、账号及数据库备份均不进入源码；业务参数通过私有配置修改。部署模板见 [deploy/app](deploy/app/)。
 <!-- campus-cloud-20261028-end -->

@@ -9,6 +9,12 @@
   </parent>
   <artifactId>campus-integration</artifactId>
   <dependencies>
+    <!-- Official SDK; shared HTTP/XML/crypto versions remain managed by the parent. -->
+    <dependency>
+      <groupId>com.aliyun</groupId>
+      <artifactId>dypnsapi20170525</artifactId>
+      <version>${aliyun-pnvs-sdk.version}</version>
+    </dependency>
     <dependency><groupId>io.minio</groupId><artifactId>minio</artifactId></dependency>
     <!-- Versions are managed by Spring Boot; no starters probe absent services. -->
     <dependency><groupId>io.lettuce</groupId><artifactId>lettuce-core</artifactId></dependency>

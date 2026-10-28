@@ -21,6 +21,7 @@ $settings=@{
  AUTH_ENABLED='false';JWT_ENABLED='false';SMS_SIMULATED_ENABLED='false';SEARCH_BACKEND='MYSQL'
  NOTIFICATION_DISPATCH_ENABLED='false';SEARCH_REBUILD_ENABLED='false';TRADE_SCHEDULER_ENABLED='false'
  ALIPAY_SANDBOX_ENABLED='false';CAMPUS_ALIPAY_LIVE_TEST='false'
+ ALIYUN_PNVS_ENABLED='false';CAMPUS_PNVS_LIVE_TEST='false'
 }
 $saved=@{};$present=@{};$testExit=1
 if($UseObjectStorageConfiguration){

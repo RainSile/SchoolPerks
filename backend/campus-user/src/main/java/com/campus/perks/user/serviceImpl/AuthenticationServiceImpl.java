@@ -103,7 +103,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         now);
     rate("ip-window:" + ip, properties.rateWindow(), properties.ipWindowLimit(), now);
     String id = UUID.randomUUID().toString();
-    String code = sms.simulated() ? sms.codeOverride() : secrets.code(properties.codeLength());
+    boolean remote = sms.verifiesRemotely();
+    String verifier = remote ? sms.verifierType() : "LOCAL";
+    if (remote
+        && (verifier == null || !verifier.matches("[A-Z_]{1,32}") || "LOCAL".equals(verifier)))
+      throw error(HttpStatus.SERVICE_UNAVAILABLE, "SMS_UNAVAILABLE", "短信核验服务配置不可用");
+    String code =
+        remote
+            ? null
+            : sms.simulated() ? sms.codeOverride() : secrets.code(properties.codeLength());
     Instant expires = now.plus(business.verificationCodeTtl());
     challenges.invalidatePrevious(request.phone(), request.purpose());
     challenges.insert(
@@ -111,16 +119,40 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             id,
             request.phone(),
             request.purpose(),
-            secrets.hash(id + ":" + code),
+            remote ? null : secrets.hash(id + ":" + code),
             0,
             "SENT",
             now,
-            expires));
+            expires,
+            verifier,
+            null,
+            null));
     try {
-      sms.sendVerificationCode(
-          request.phone(), request.purpose(), code, business.verificationCodeTtl());
+      if (remote) {
+        var receipt =
+            sms.startRemoteVerification(
+                new SmsSenderPort.RemoteChallenge(
+                    id,
+                    request.phone(),
+                    request.purpose(),
+                    properties.codeLength(),
+                    business.verificationCodeTtl(),
+                    properties.resendInterval()));
+        if (receipt == null
+            || !verifier.equals(receipt.verifierType())
+            || receipt.reference() == null
+            || receipt.reference().isBlank()
+            || receipt.scope() == null
+            || receipt.scope().isBlank())
+          throw error(HttpStatus.SERVICE_UNAVAILABLE, "SMS_DELIVERY_FAILED", "验证码发送失败，请稍后重试");
+        challenges.delivery(id, receipt.reference(), receipt.scope());
+      } else {
+        sms.sendVerificationCode(
+            request.phone(), request.purpose(), code, business.verificationCodeTtl());
+      }
     } catch (RuntimeException ex) {
       challenges.status(id, "FAILED");
+      if (ex instanceof ApplicationException application) throw application;
       throw error(HttpStatus.SERVICE_UNAVAILABLE, "SMS_DELIVERY_FAILED", "验证码发送失败，请稍后重试");
     }
     return new ChallengeView(id, expires, "SENT");
@@ -181,8 +213,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         || !purpose.equals(challenge.purpose())
         || !challenge.expiresAt().isAfter(now)
         || challenge.attempts() >= properties.maxCodeAttempts()) throw invalidCode();
-    if (!phone.equals(challenge.phone())
-        || !secrets.matches(challenge.codeHash(), id + ":" + code)) {
+    if (!phone.equals(challenge.phone())) {
+      challenges.failedAttempt(id);
+      throw invalidCode();
+    }
+    boolean matches;
+    if ("LOCAL".equals(challenge.verifierType())) {
+      if (sms.verifiesRemotely())
+        throw error(
+            HttpStatus.SERVICE_UNAVAILABLE, "SMS_VERIFIER_UNAVAILABLE", "原短信核验服务暂不可用，请重新获取验证码");
+      matches = secrets.matches(challenge.codeHash(), id + ":" + code);
+    } else {
+      if (!sms.available()
+          || !sms.verifiesRemotely()
+          || !challenge.verifierType().equals(sms.verifierType()))
+        throw error(
+            HttpStatus.SERVICE_UNAVAILABLE, "SMS_VERIFIER_UNAVAILABLE", "原短信核验服务暂不可用，请稍后重试");
+      matches =
+          sms.verifyRemoteCode(
+              phone, purpose, challenge.providerScope(), challenge.providerReference(), id, code);
+    }
+    if (!matches) {
       challenges.failedAttempt(id);
       throw invalidCode();
     }

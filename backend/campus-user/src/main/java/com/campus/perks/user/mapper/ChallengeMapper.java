@@ -28,19 +28,27 @@ public interface ChallengeMapper {
 
   @Insert(
       "INSERT INTO"
-          + " campus_verification_challenge(id,phone,purpose,code_hash,attempts,status,created_at,expires_at)"
-          + " VALUES(#{id},#{phone},#{purpose},#{codeHash},#{attempts},#{status},#{createdAt},#{expiresAt})")
+          + " campus_verification_challenge(id,phone,purpose,code_hash,attempts,status,created_at,expires_at,verifier_type,provider_reference,provider_scope)"
+          + " VALUES(#{id},#{phone},#{purpose},#{codeHash},#{attempts},#{status},#{createdAt},#{expiresAt},#{verifierType},#{providerReference},#{providerScope})")
   int insert(ChallengeEntity entity);
 
   @Select(
-      "SELECT id,phone,purpose,code_hash,attempts,status,created_at,expires_at FROM"
-          + " campus_verification_challenge WHERE id=#{id} FOR UPDATE")
+      "SELECT"
+          + " id,phone,purpose,code_hash,attempts,status,created_at,expires_at,verifier_type,provider_reference,provider_scope"
+          + " FROM campus_verification_challenge WHERE id=#{id} FOR UPDATE")
   ChallengeEntity lock(String id);
 
   @Select(
-      "SELECT id,phone,purpose,code_hash,attempts,status,created_at,expires_at FROM"
-          + " campus_verification_challenge WHERE id=#{id}")
+      "SELECT"
+          + " id,phone,purpose,code_hash,attempts,status,created_at,expires_at,verifier_type,provider_reference,provider_scope"
+          + " FROM campus_verification_challenge WHERE id=#{id}")
   ChallengeEntity find(String id);
+
+  @Update(
+      "UPDATE campus_verification_challenge SET"
+          + " provider_reference=#{reference},provider_scope=#{scope} WHERE id=#{id}")
+  int delivery(
+      @Param("id") String id, @Param("reference") String reference, @Param("scope") String scope);
 
   @Update("UPDATE campus_verification_challenge SET status=#{status} WHERE id=#{id}")
   int status(@Param("id") String id, @Param("status") String status);

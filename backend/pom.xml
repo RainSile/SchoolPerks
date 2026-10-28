@@ -32,6 +32,9 @@
   </modules>
   <properties>
     <alipay-sdk.version>4.40.934.ALL</alipay-sdk.version>
+    <aliyun-pnvs-sdk.version>2.0.0</aliyun-pnvs-sdk.version>
+    <aliyun-tea.version>1.3.1</aliyun-tea.version>
+    <aliyun-credentials.version>1.0.1</aliyun-credentials.version>
     <bcprov.version>1.81</bcprov.version>
     <dom4j.version>2.1.4</dom4j.version>
     <java.version>17</java.version>
@@ -51,6 +54,10 @@
   </properties>
   <dependencyManagement>
     <dependencies>
+      <dependency><groupId>com.aliyun</groupId><artifactId>tea</artifactId><version>${aliyun-tea.version}</version></dependency>
+      <dependency><groupId>com.aliyun</groupId><artifactId>credentials-java</artifactId><version>${aliyun-credentials.version}</version></dependency>
+      <dependency><groupId>org.dom4j</groupId><artifactId>dom4j</artifactId><version>${dom4j.version}</version></dependency>
+      <dependency><groupId>org.bouncycastle</groupId><artifactId>bcprov-jdk18on</artifactId><version>${bcprov.version}</version></dependency>
       <dependency>
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp-bom</artifactId>
@@ -117,6 +124,9 @@
                     <include>dev.langchain4j:*</include>
                     <include>com.squareup.okhttp3:*</include>
                     <include>org.jetbrains.kotlin:*</include>
+                    <include>com.aliyun:*</include>
+                    <include>org.dom4j:*</include>
+                    <include>org.bouncycastle:*</include>
                   </includes>
                 </dependencyConvergence>
               </rules>

@@ -202,6 +202,21 @@ campus:
     sms:
       simulated-enabled: ${SMS_SIMULATED_ENABLED:false}
       simulated-code: ${SMS_SIMULATED_CODE:}
+      aliyun-pnvs:
+        enabled: ${ALIYUN_PNVS_ENABLED:false}
+        endpoint: ${ALIYUN_PNVS_ENDPOINT:https://dypnsapi.aliyuncs.com}
+        access-key-id: ${ALIYUN_PNVS_ACCESS_KEY_ID:}
+        access-key-secret: ${ALIYUN_PNVS_ACCESS_KEY_SECRET:}
+        sign-name: ${ALIYUN_PNVS_SIGN_NAME:}
+        country-code: ${ALIYUN_PNVS_COUNTRY_CODE:86}
+        login-template-code: ${ALIYUN_PNVS_LOGIN_TEMPLATE_CODE:}
+        register-template-code: ${ALIYUN_PNVS_REGISTER_TEMPLATE_CODE:}
+        reset-template-code: ${ALIYUN_PNVS_RESET_TEMPLATE_CODE:}
+        login-scheme: ${ALIYUN_PNVS_LOGIN_SCHEME:campus-login}
+        register-scheme: ${ALIYUN_PNVS_REGISTER_SCHEME:campus-register}
+        reset-scheme: ${ALIYUN_PNVS_RESET_SCHEME:campus-reset}
+        connect-timeout: ${ALIYUN_PNVS_CONNECT_TIMEOUT:3s}
+        read-timeout: ${ALIYUN_PNVS_READ_TIMEOUT:5s}
     alipay-sandbox:
       enabled: ${ALIPAY_SANDBOX_ENABLED:false}
       gateway: ${ALIPAY_SANDBOX_GATEWAY:https://openapi.alipaydev.com/gateway.do}
