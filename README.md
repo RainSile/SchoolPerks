@@ -8,6 +8,8 @@
 公开配置默认关闭，本机私有配置已准备；本次代码发布没有替换当前云端部署。上线需部署包含V13的新包并注入私有短信配置，生产不返回验证码且不自动更换指定签名。
 
 [接入、配置、测试与费用边界](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/ALIYUN-PNVS-SETUP.md)
+手机收件后续确认：共3次发送，用户实际收到2条，另1次待核实；接口专项通过不代表全部送达。已登记 SMS-ACCEPTANCE-001，暂不补发。
+
 <!-- campus-sms-20261028-end -->
 
 
