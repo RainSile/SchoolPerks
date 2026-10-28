@@ -1,5 +1,9 @@
 # REST 接口合同
 
+## 2026-10-28 阿里云号码认证
+
+原短信挑战、注册、验证码登录和密码重置接口保持不变，接入 PNVS 服务端生成／核验。HTTP 不返回验证码或供应商流水；用途、手机号、期限、错误次数、一次性消费继续由本站校验，远程核验必须 PASS。错误码新增 SMS_PROVIDER_UNAVAILABLE、SMS_PROVIDER_RATE_LIMITED、SMS_VERIFIER_UNAVAILABLE，分别为 503、429、503。验证码错误继续 401，不因云端普通 OK 就放行。见 [接入与真实专项](ALIYUN-PNVS-SETUP.md)。
+
 ## 当前助手与跨端授权（2026-10-26）
 
 新增GET /api/v1/assistant/business-apis，返回当前账号可用的固定业务操作与schema；POST /api/v1/assistant/conversations/{id}/message-streams采用SSE，Bearer和Idempotency-Key必填，JSON为message和allowWrites（默认false）。started/round/delta/tool/completed/error见ASSISTANT-BUSINESS-APIS.md；原JSON提问及状态接口保留。

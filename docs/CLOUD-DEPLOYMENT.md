@@ -31,7 +31,7 @@ Spring Boot → 本机 MySQL 127.0.0.1:3306
 
 `run-backend.sh` 根据 `PUBLIC_HOST` 推导 HTTPS CORS 来源、MinIO 浏览器签名地址和支付宝通知地址；也允许显式设置 `CORS_ALLOWED_ORIGINS`、`MINIO_PUBLIC_ENDPOINT`、`ALIPAY_SANDBOX_NOTIFY_URL` 覆盖。更换应用主机或中间件主机时修改这些配置即可，不需要修改 Java/Vue 源码。
 
-`backend.env.example` 的 `false` 是安全的示例默认值，**不是当前已部署服务的实际开关**。当前云端按已有私有配置启用所需服务，交易定时任务、通知派发、搜索重建已经启用；公网固定短信模拟保持关闭，真实短信仍待供应商审批。`LOGGING_LEVEL_SDK=OFF` 关闭支付宝 SDK 原始签名请求日志，保留应用自身经过处理的错误码和任务状态。
+`backend.env.example` 的 `false` 是安全的示例默认值，**不是当前已部署服务的实际开关**。当前云端按已有私有配置启用所需服务，交易定时任务、通知派发、搜索重建已经启用；公网固定短信模拟保持关闭。后续 PNVS 短信实现与真实专项已完成，但须另行部署包含 V13 的新包并注入私有变量，见 [接入说明](ALIYUN-PNVS-SETUP.md)。`LOGGING_LEVEL_SDK=OFF` 关闭支付宝 SDK 原始签名请求日志，保留应用自身经过处理的错误码和任务状态。
 
 私有目录权限 `0700`，配置文件 `0600`；systemd 由系统管理器读取后将环境传给专用服务账号。目录约定为 `/opt/campus-perks-app`；需要更换安装目录时，统一调整 unit、MySQL 路径和环境文件中的部署路径，而不是改业务代码。SSH 配置采用固定主机公钥和独立受限密钥，不关闭主机校验。
 

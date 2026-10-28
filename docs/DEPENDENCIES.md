@@ -1,5 +1,9 @@
 # 依赖版本与兼容性记录
 
+## 2026-10-28 阿里云号码认证
+
+新增官方 `com.aliyun:dypnsapi20170525:2.0.0` 普通 SDK，已核对 Maven Central 发布元数据。Tea 1.3.1、credentials-java 1.0.1 通过依赖管理对齐其冲突路径；dom4j 2.1.4、BouncyCastle 1.81 沿用现有版本并扩展管理范围。shaded 包因重复内置 dom4j 未采用。MinIO、LangChain4j、OkHttp、Kotlin、支付宝版本不变；Enforcer 扩展到 com.aliyun、dom4j 和 BouncyCastle，未关闭原唯一实现或收敛检查。Java17、完整 SDK 回归及 3 次真实短信的业务核验通过。见 [号码认证接入](ALIYUN-PNVS-SETUP.md)。
+
 ## 2026-10-27 MinIO实际接入
 
 MinIO Java8.6.0由external-sdks移至普通integration依赖，确保真实适配器进入默认JAR。OkHttp5.1.0与Kotlin2.2.0保持原版本，未引入第二套HTTP或签名SDK。Java17默认打包、真实上传/封存/下载及external-sdks基础合同和SDK共同加载均通过。服务器固定官方RELEASE.2025-10-15T17-29-55Z源码提交，部署初始化依赖由其自带Go模块锁定；与Maven依赖分别管理。详见[MinIO接入](MINIO-SETUP.md)，以下历史记录以本节及当前POM为准。
