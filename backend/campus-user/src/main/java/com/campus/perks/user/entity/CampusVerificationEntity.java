@@ -8,7 +8,9 @@ public record CampusVerificationEntity(
     String status,
     java.time.Instant submittedAt,
     java.time.Instant reviewedAt,
-    String reviewReason) {
+    String reviewReason,
+    String studentCardFileId,
+    java.time.Instant evidenceDeletedAt) {
   @Override
   public String toString() {
     return "CampusVerificationEntity[REDACTED]";

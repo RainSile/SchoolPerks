@@ -142,6 +142,26 @@ campus:
     upload-ttl: ${FILE_UPLOAD_TTL:5m}
     download-ttl: ${FILE_DOWNLOAD_TTL:2m}
     object-prefix: ${FILE_OBJECT_PREFIX:private/merchant-qualifications}
+  images:
+    student-card-prefix: ${FILE_STUDENT_CARD_PREFIX:private/student-cards}
+    avatar-prefix: ${FILE_AVATAR_PREFIX:private/avatars/custom}
+    community-prefix: ${FILE_COMMUNITY_IMAGE_PREFIX:private/community-images}
+    avatar-max-bytes: ${AVATAR_MAX_BYTES:2097152}
+  avatars:
+    object-prefix: ${AVATAR_DEFAULT_PREFIX:private/avatars/default}
+    default-key: ${AVATAR_DEFAULT_KEY:campus-blue}
+    download-ttl: ${AVATAR_DOWNLOAD_TTL:5m}
+    defaults:
+      campus-blue: 校园蓝·票券
+      sunshine: 暖阳·咖啡
+      fresh-green: 青柠·书本
+      star-purple: 星夜·星星
+  campus-evidence:
+    retention: ${CAMPUS_EVIDENCE_RETENTION:30d}
+    cleanup-batch-size: ${CAMPUS_EVIDENCE_CLEANUP_BATCH_SIZE:20}
+    cleanup-enabled: ${CAMPUS_EVIDENCE_CLEANUP_ENABLED:true}
+    cleanup-interval-ms: ${CAMPUS_EVIDENCE_CLEANUP_INTERVAL_MS:3600000}
+    cleanup-initial-delay-ms: ${CAMPUS_EVIDENCE_CLEANUP_INITIAL_DELAY_MS:60000}
   coupon:
     max-stock: ${COUPON_MAX_STOCK:100000}
     max-validity: ${COUPON_MAX_VALIDITY:90d}

@@ -19,7 +19,8 @@ public final class CommunityViews {
       Instant reviewedAt) {}
 
   public record Comment(
-      String id, String postId, String body, String status, int version, Instant createdAt) {}
+      String id, String postId, String body, String status, int version, Instant createdAt,
+      com.campus.perks.integration.port.PublicUserPort.Profile author) {}
 
   public record Like(String postId, boolean liked, long count) {}
 

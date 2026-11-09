@@ -12,7 +12,8 @@ public record UserProfile(
     String campusVerificationStatus,
     java.util.List<String> permissions,
     String accountType,
-    String homePath) {
+    String homePath,
+    AvatarView avatar) {
   @Override
   public String toString() {
     return "UserProfile[REDACTED]";

@@ -8,7 +8,7 @@ public record CreateUploadRequest(
     @NotBlank @Size(max = 200) String fileName,
     @NotBlank @Size(max = 100) String contentType,
     @Min(1) long size,
-    @NotBlank @Pattern(regexp = "MERCHANT_QUALIFICATION|COMMUNITY_IMAGE") String purpose) {
+    @NotBlank @Pattern(regexp = "MERCHANT_QUALIFICATION|COMMUNITY_IMAGE|STUDENT_CARD|USER_AVATAR") String purpose) {
   @Override
   public String toString() {
     return "CreateUploadRequest[REDACTED]";

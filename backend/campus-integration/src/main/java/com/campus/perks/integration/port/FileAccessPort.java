@@ -12,6 +12,11 @@ public interface FileAccessPort {
 
   Download signOwnedDownload(String fileId, String ownerId);
 
+  /** Internal retention operation. No controller exposes arbitrary object deletion. */
+  default void eraseOwnedStudentCard(String fileId, String ownerId) {
+    throw new UnsupportedOperationException("Student-card retention is unavailable");
+  }
+
   record Download(URI url, Instant expiresAt) {
     @Override
     public String toString() {

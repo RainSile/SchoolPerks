@@ -16,4 +16,5 @@ public record PostSummary(
     long commentCount,
     java.time.Instant createdAt,
     java.time.Instant publishedAt,
-    String reviewReason) {}
+    String reviewReason,
+    com.campus.perks.integration.port.PublicUserPort.Profile author) {}

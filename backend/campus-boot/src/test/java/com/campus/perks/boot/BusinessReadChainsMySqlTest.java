@@ -175,7 +175,7 @@ class BusinessReadChainsMySqlTest extends RbacIsolationMySqlTest {
         create(
             "/users/me/campus-verifications",
             user,
-            Map.of("schoolId", "" + school, "realName", "测试同学", "studentNumber", "TEST-2026"));
+            Map.of("schoolId", "" + school, "realName", "测试同学", "studentNumber", "TEST-2026", "studentCardFileId", StudentCardFixture.ready(db,user)));
     assertThat(
             read("/users/me/campus-verifications/" + verification.path("id").asText(), user)
                 .path("id")

@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.*;
 public interface CampusVerificationMapper {
   String SELECT =
       "SELECT v.id,v.user_id,v.school_id,s.name AS"
-          + " school_name,v.status,v.submitted_at,v.reviewed_at,v.review_reason FROM"
+          + " school_name,v.status,v.submitted_at,v.reviewed_at,v.review_reason,v.student_card_file_id,v.evidence_deleted_at FROM"
           + " campus_campus_verification v JOIN campus_school s ON s.id=v.school_id ";
 
   @Select(SELECT + "WHERE v.user_id=#{userId} ORDER BY v.submitted_at DESC,v.id DESC LIMIT 100")
@@ -25,12 +25,16 @@ public interface CampusVerificationMapper {
 
   @Insert(
       "INSERT INTO"
-          + " campus_campus_verification(id,user_id,school_id,encrypted_identity,status,submitted_at)"
-          + " VALUES(#{id},#{userId},#{schoolId},#{identity},'PENDING',#{now})")
+          + " campus_campus_verification(id,user_id,school_id,encrypted_identity,status,submitted_at,student_card_file_id)"
+          + " VALUES(#{id},#{userId},#{schoolId},#{identity},'PENDING',#{now},#{fileId})")
   int insert(
       @Param("id") String id,
       @Param("userId") long userId,
       @Param("schoolId") long schoolId,
       @Param("identity") String identity,
-      @Param("now") Instant now);
+      @Param("now") Instant now,
+      @Param("fileId") String fileId);
+
+  @Select("SELECT COUNT(*) FROM campus_campus_verification WHERE student_card_file_id=#{file}")
+  int fileUsed(String file);
 }

@@ -10,4 +10,5 @@ public record StorageCapabilities(
     long maxBytes,
     Set<String> allowedTypes,
     long uploadTtlSeconds,
-    long downloadTtlSeconds) {}
+    long downloadTtlSeconds,
+    long avatarMaxBytes) {}

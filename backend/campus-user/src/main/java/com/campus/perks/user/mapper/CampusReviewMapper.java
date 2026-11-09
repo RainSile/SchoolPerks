@@ -9,9 +9,13 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface CampusReviewMapper {
+  @Select("SELECT id FROM campus_campus_verification WHERE status IN ('APPROVED','REJECTED') AND reviewed_at<=#{cutoff} AND student_card_file_id IS NOT NULL AND evidence_deleted_at IS NULL ORDER BY reviewed_at,id LIMIT #{size}")
+  List<String> expiredEvidence(@Param("cutoff") Instant cutoff,@Param("size") int size);
+  @Update("UPDATE campus_campus_verification SET evidence_deleted_at=#{now} WHERE id=#{id} AND evidence_deleted_at IS NULL")
+  int evidenceDeleted(@Param("id")String id,@Param("now")Instant now);
   @Select(
       "SELECT v.id,CAST(v.user_id AS CHAR) AS applicant_id,CAST(v.school_id AS CHAR) AS"
-          + " school_id,s.name AS school_name,v.status,v.submitted_at FROM"
+          + " school_id,s.name AS school_name,v.status,v.submitted_at,(v.student_card_file_id IS NOT NULL AND v.evidence_deleted_at IS NULL) AS evidence_available FROM"
           + " campus_campus_verification v JOIN campus_school s ON s.id=v.school_id WHERE"
           + " v.status=#{status} ORDER BY v.submitted_at,v.id LIMIT #{size} OFFSET #{offset}")
   List<Entry> queue(
@@ -22,16 +26,17 @@ public interface CampusReviewMapper {
 
   @Select(
       "SELECT v.id,v.user_id,v.school_id,s.name AS"
-          + " school_name,v.status,v.submitted_at,v.reviewed_at,v.review_reason FROM"
+          + " school_name,v.status,v.submitted_at,v.reviewed_at,v.review_reason,v.student_card_file_id,v.evidence_deleted_at FROM"
           + " campus_campus_verification v JOIN campus_school s ON s.id=v.school_id WHERE"
           + " v.id=#{id}")
   CampusVerificationEntity find(String id);
 
   @Select(
       "SELECT v.id,v.user_id,v.school_id,s.name AS"
-          + " school_name,v.status,v.submitted_at,v.reviewed_at,v.review_reason FROM"
+          + " school_name,v.status,v.submitted_at,v.reviewed_at,v.review_reason,v.student_card_file_id,v.evidence_deleted_at FROM"
           + " campus_campus_verification v JOIN campus_school s ON s.id=v.school_id WHERE"
           + " v.id=#{id} FOR UPDATE")
+  @Options(useCache=false,flushCache=Options.FlushCachePolicy.TRUE)
   CampusVerificationEntity lock(String id);
 
   @Select("SELECT encrypted_identity FROM campus_campus_verification WHERE id=#{id}")

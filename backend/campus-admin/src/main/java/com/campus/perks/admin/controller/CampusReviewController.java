@@ -38,6 +38,12 @@ public class CampusReviewController {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(reviews.identity(id));
   }
 
+  @PostMapping("/campus-verifications/{id}/student-card-download-tickets")
+  @Operation(summary="审核员查看学生证首页",description="仅campus:review可读；短签私有访问并记录审计，保留期清理后返回410")
+  public ResponseEntity<com.campus.perks.integration.port.FileAccessPort.Download> studentCard(@PathVariable String id){
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(reviews.studentCard(id));
+  }
+
   @PostMapping("/campus-verifications/{id}/reviews")
   @Operation(summary = "审核校园认证", description = "通过时同事务更新校园身份、审核历史及审计；禁止自审。")
   public ResponseEntity<ReviewRecord> decide(

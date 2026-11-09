@@ -25,6 +25,7 @@ public class CampusReviewService implements CampusReviewPort {
   private final AccountDirectoryPort accounts;
   private final AuditPort audit;
   private final Clock clock;
+  private final FileAccessPort files;
 
   public CampusReviewService(
       CampusReviewMapper mapper,
@@ -32,13 +33,15 @@ public class CampusReviewService implements CampusReviewPort {
       ObjectMapper json,
       AccountDirectoryPort accounts,
       AuditPort audit,
-      Clock clock) {
+      Clock clock,
+      FileAccessPort files) {
     this.mapper = mapper;
     this.secrets = secrets;
     this.json = json;
     this.accounts = accounts;
     this.audit = audit;
     this.clock = clock;
+    this.files = files;
   }
 
   private ApplicationException error(HttpStatus status, String code, String detail) {
@@ -85,7 +88,12 @@ public class CampusReviewService implements CampusReviewPort {
     var row = mapper.lock(id);
     if (!"PENDING".equals(row.status()))
       throw error(HttpStatus.CONFLICT, "ALREADY_REVIEWED", "认证申请已经审核");
-    if ("APPROVED".equals(decision)) mapper.approveSchool(row.userId(), row.schoolId());
+    if ("APPROVED".equals(decision)) {
+      if(row.studentCardFileId()==null || row.evidenceDeletedAt()!=null)
+        throw error(HttpStatus.CONFLICT,"STUDENT_CARD_REQUIRED","缺少学生证照片，请驳回后让申请人重新提交");
+      files.requireReadyOwned(row.studentCardFileId(),row.userId().toString(),"STUDENT_CARD");
+      mapper.approveSchool(row.userId(), row.schoolId());
+    }
     else if (!"REJECTED".equals(decision))
       throw error(HttpStatus.BAD_REQUEST, "INVALID_DECISION", "审核决定不合法");
     var record =
@@ -112,5 +120,29 @@ public class CampusReviewService implements CampusReviewPort {
     var row = mapper.review(id);
     if (row == null) throw error(HttpStatus.NOT_FOUND, "REVIEW_NOT_FOUND", "审核记录不存在");
     return row;
+  }
+
+  @Transactional
+  public FileAccessPort.Download studentCard(String id) {
+    CurrentActor.require("campus:review");
+    var row=mapper.lock(id);
+    if(row==null)throw error(HttpStatus.NOT_FOUND,"VERIFICATION_NOT_FOUND","认证申请不存在");
+    return evidence(row);
+  }
+
+  @Transactional
+  public FileAccessPort.Download ownStudentCard(String uid,String id) {
+    var row=mapper.lock(id);
+    if(row==null || !row.userId().toString().equals(uid))
+      throw error(HttpStatus.NOT_FOUND,"VERIFICATION_NOT_FOUND","认证申请不存在");
+    return evidence(row);
+  }
+
+  private FileAccessPort.Download evidence(com.campus.perks.user.entity.CampusVerificationEntity row) {
+    if(row.evidenceDeletedAt()!=null)throw error(HttpStatus.GONE,"STUDENT_CARD_DELETED","学生证照片已按保留期限清除");
+    if(row.studentCardFileId()==null)throw error(HttpStatus.NOT_FOUND,"STUDENT_CARD_NOT_FOUND","旧申请没有学生证照片");
+    var ticket=files.signOwnedDownload(row.studentCardFileId(),row.userId().toString());
+    audit.record(CurrentActor.id(),"CAMPUS_EVIDENCE_VIEWED","CAMPUS_VERIFICATION",row.id(),Map.of());
+    return ticket;
   }
 }

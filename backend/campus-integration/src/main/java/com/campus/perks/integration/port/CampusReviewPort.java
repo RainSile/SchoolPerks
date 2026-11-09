@@ -13,13 +13,18 @@ public interface CampusReviewPort {
 
   ReviewRecord review(String id);
 
+  default FileAccessPort.Download studentCard(String id) {
+    throw new UnsupportedOperationException("Student-card evidence is unavailable");
+  }
+
   record Entry(
       String id,
       String applicantId,
       String schoolId,
       String schoolName,
       String status,
-      Instant submittedAt) {}
+      Instant submittedAt,
+      boolean evidenceAvailable) {}
 
   record Identity(String realName, String studentNumber) {
     @Override

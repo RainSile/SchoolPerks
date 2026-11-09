@@ -638,7 +638,7 @@ class MerchantStageTwoMySqlTest {
                         "realName",
                         "stage2-test-name",
                         "studentNumber",
-                        "STAGE22026"))
+                        "STAGE22026", "studentCardFileId", StudentCardFixture.ready(jdbc,ownerA)))
                 .andExpect(status().isCreated()));
     String id = application.get("id").asText();
     get("/admin/campus-verifications", reviewer).andExpect(status().isForbidden());
@@ -750,7 +750,7 @@ class MerchantStageTwoMySqlTest {
                         "realName",
                         "test",
                         "studentNumber",
-                        "TEST2026"))
+                        "TEST2026", "studentCardFileId", StudentCardFixture.ready(jdbc,ownerA)))
                 .andExpect(status().isCreated()))
             .get("id")
             .asText();

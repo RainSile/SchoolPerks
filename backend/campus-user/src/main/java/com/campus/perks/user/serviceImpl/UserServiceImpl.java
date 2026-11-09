@@ -24,6 +24,8 @@ public class UserServiceImpl implements UserService {
   private final AuthSecrets secrets;
   private final ObjectMapper json;
   private final Clock clock;
+  private final AvatarService avatars;
+  private final com.campus.perks.integration.port.FileAccessPort files;
 
   public UserServiceImpl(
       UserMapper users,
@@ -31,13 +33,17 @@ public class UserServiceImpl implements UserService {
       AuthSecrets secrets,
       ObjectMapper json,
       Clock clock,
-      UserPermissions permissions) {
+      UserPermissions permissions,
+      AvatarService avatars,
+      com.campus.perks.integration.port.FileAccessPort files) {
     this.permissions = permissions;
     this.users = users;
     this.verifications = verifications;
     this.secrets = secrets;
     this.json = json;
     this.clock = clock;
+    this.avatars = avatars;
+    this.files = files;
   }
 
   private long id(String value) {
@@ -66,7 +72,8 @@ public class UserServiceImpl implements UserService {
         history.isEmpty() ? "UNVERIFIED" : history.get(0).status(),
         permissions.forUser(user.id()),
         user.accountType(),
-        com.campus.perks.security.service.AccountPortal.valueOf(user.accountType()).home());
+        com.campus.perks.security.service.AccountPortal.valueOf(user.accountType()).home(),
+        avatars.selected(uid));
   }
 
   private String mask(String phone) {
@@ -95,6 +102,9 @@ public class UserServiceImpl implements UserService {
       throw new ApplicationException(HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND", "学校不存在");
     if (verifications.active(user.id()) > 0)
       throw new ApplicationException(HttpStatus.CONFLICT, "VERIFICATION_EXISTS", "已有待审核或通过的校园认证申请");
+    files.requireReadyOwned(request.studentCardFileId(),uid,"STUDENT_CARD");
+    if(verifications.fileUsed(request.studentCardFileId())>0)
+      throw new ApplicationException(HttpStatus.CONFLICT,"STUDENT_CARD_ALREADY_USED","该照片已用于认证申请，请重新拍摄或上传");
     String identity;
     try {
       identity =
@@ -109,7 +119,7 @@ public class UserServiceImpl implements UserService {
     }
     String key = UUID.randomUUID().toString();
     verifications.insert(
-        key, user.id(), school, secrets.encryptIdentity(uid, identity), clock.instant());
+        key, user.id(), school, secrets.encryptIdentity(uid, identity), clock.instant(),request.studentCardFileId());
     // Submission alone never grants verified status or changes campus_user.school_id.
     return view(verifications.own(user.id(), key));
   }
@@ -137,6 +147,8 @@ public class UserServiceImpl implements UserService {
         row.status(),
         row.submittedAt(),
         row.reviewedAt(),
-        row.reviewReason());
+        row.reviewReason(),
+        row.studentCardFileId()!=null && row.evidenceDeletedAt()==null,
+        row.evidenceDeletedAt());
   }
 }

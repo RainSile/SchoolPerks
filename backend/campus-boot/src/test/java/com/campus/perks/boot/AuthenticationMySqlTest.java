@@ -355,7 +355,7 @@ class AuthenticationMySqlTest {
                                     "realName",
                                     "测试学生",
                                     "studentNumber",
-                                    "STUDENT2026"))))
+                                    "STUDENT2026", "studentCardFileId", StudentCardFixture.ready(jdbc,Long.parseLong(uid))))))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.status").value("PENDING")));
@@ -382,7 +382,7 @@ class AuthenticationMySqlTest {
                             "realName",
                             "测试学生",
                             "studentNumber",
-                            "STUDENT2026"))))
+                            "STUDENT2026", "studentCardFileId", StudentCardFixture.ready(jdbc,Long.parseLong(uid))))))
         .andExpect(status().isConflict());
     var other = login(phone());
     mvc.perform(

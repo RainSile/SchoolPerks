@@ -3,6 +3,7 @@ package com.campus.perks.file.serviceImpl;
 import com.campus.perks.common.api.*;
 import com.campus.perks.common.exception.ApplicationException;
 import com.campus.perks.file.config.FileProperties;
+import com.campus.perks.file.config.ImageStorageProperties;
 import com.campus.perks.file.dto.CreateUploadRequest;
 import com.campus.perks.file.entity.FileObject;
 import com.campus.perks.file.mapper.FileMapper;
@@ -28,6 +29,7 @@ public class FileServiceImpl implements FileService, FileAccessPort {
   private final AccountDirectoryPort accounts;
   private final AuditPort audit;
   private final Clock clock;
+  private final ImageStorageProperties images;
 
   public FileServiceImpl(
       FileMapper files,
@@ -35,13 +37,15 @@ public class FileServiceImpl implements FileService, FileAccessPort {
       FileProperties p,
       AccountDirectoryPort accounts,
       AuditPort audit,
-      Clock clock) {
+      Clock clock,
+      ImageStorageProperties images) {
     this.files = files;
     this.storage = storage;
     this.p = p;
     this.accounts = accounts;
     this.audit = audit;
     this.clock = clock;
+    this.images = images;
   }
 
   public StorageCapabilities capabilities() {
@@ -51,7 +55,8 @@ public class FileServiceImpl implements FileService, FileAccessPort {
         p.maxBytes(),
         p.allowedTypes(),
         p.uploadTtl().toSeconds(),
-        p.downloadTtl().toSeconds());
+        p.downloadTtl().toSeconds(),
+        images.avatarMaxBytes());
   }
 
   private ApplicationException error(HttpStatus status, String code, String detail) {
@@ -79,8 +84,9 @@ public class FileServiceImpl implements FileService, FileAccessPort {
     available();
     if (r.size() > p.maxBytes()
         || !p.allowedTypes().contains(r.contentType())
-        || "COMMUNITY_IMAGE".equals(r.purpose())
+        || !"MERCHANT_QUALIFICATION".equals(r.purpose())
             && !java.util.Set.of("image/png", "image/jpeg").contains(r.contentType())
+        || "USER_AVATAR".equals(r.purpose()) && r.size() > images.avatarMaxBytes()
         || r.fileName().contains("/")
         || r.fileName().contains("\\")
         || r.fileName().codePoints().anyMatch(Character::isISOControl))
@@ -90,8 +96,14 @@ public class FileServiceImpl implements FileService, FileAccessPort {
     if (files.pending(Long.parseLong(owner), now) >= p.maxPendingPerUser())
       throw error(HttpStatus.TOO_MANY_REQUESTS, "UPLOAD_LIMIT", "待完成上传过多，请稍后重试");
     String id = UUID.randomUUID().toString();
-    String staging = p.objectPrefix() + "/pending/" + id;
-    String immutable = p.objectPrefix() + "/sealed/" + UUID.randomUUID();
+    String prefix = switch (r.purpose()) {
+      case "STUDENT_CARD" -> images.studentCardPrefix();
+      case "USER_AVATAR" -> images.avatarPrefix();
+      case "COMMUNITY_IMAGE" -> images.communityPrefix();
+      default -> p.objectPrefix();
+    };
+    String staging = prefix + "/pending/" + id;
+    String immutable = prefix + "/sealed/" + UUID.randomUUID();
     URI upload;
     try {
       upload = url(storage.createUploadUrl(staging, r.contentType(), r.size(), p.uploadTtl()));
@@ -131,6 +143,7 @@ public class FileServiceImpl implements FileService, FileAccessPort {
     accounts.lockActiveUser(owner);
     var file = own(id, owner, true);
     if ("READY".equals(file.status())) return view(file);
+    if ("DELETED".equals(file.status())) throw error(HttpStatus.GONE, "FILE_DELETED", "文件已清除，请重新上传");
     if (!file.expiresAt().isAfter(clock.instant()))
       throw error(HttpStatus.GONE, "UPLOAD_EXPIRED", "上传凭据已过期，请重新申请");
     available();
@@ -189,7 +202,19 @@ public class FileServiceImpl implements FileService, FileAccessPort {
   public void requireReadyOwned(String id, String owner, String purpose) {
     var file = own(id, owner, false);
     if (!"READY".equals(file.status()) || !file.purpose().equals(purpose))
-      throw error(HttpStatus.CONFLICT, "FILE_NOT_READY", "资质文件尚未完成上传确认");
+      throw error(HttpStatus.CONFLICT, "FILE_NOT_READY", "文件用途不符或尚未完成上传确认");
+  }
+
+  @Transactional
+  public void eraseOwnedStudentCard(String id, String owner) {
+    var file = own(id, owner, true);
+    if (!"STUDENT_CARD".equals(file.purpose()))
+      throw error(HttpStatus.CONFLICT, "FILE_PURPOSE_MISMATCH", "只能清除学生证审核材料");
+    if ("DELETED".equals(file.status())) return;
+    available();
+    storage.delete(file.immutableKey());
+    storage.delete(file.stagingKey());
+    files.markStudentCardDeleted(id);
   }
 
   public Download signOwnedDownload(String id, String owner) {

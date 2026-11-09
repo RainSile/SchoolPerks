@@ -1,5 +1,13 @@
 # 轻量私有 MinIO 部署
 
+## 业务图片子目录与默认头像
+
+学生证、默认/自定义头像及社区图片使用不同前缀，详见[完整说明](../../STUDENT-CARD-AVATAR.md)。已有实例应先使用media/main.go维护工具扩展原campus-files策略，保存旧IAM/生命周期备份并保留旧规则，再发布V15配套后端；新装实例在原bootstrap后执行同一步。此过程无需重启MinIO或其他中间件。
+
+与bootstrap相同，将media源码放入固定MinIO源码仓库的独立包中，复用原go.mod/go.sum交叉编译；不得在小云主机编译或更换SDK版本。运行时从受限环境文件注入原MinIO管理员账号、桶及可选前缀，DEFAULT_AVATAR_DIRECTORY指向default-avatars/中四款256px PNG。工具只给应用账号新增图片前缀的限定权限及默认头像只读权限，不重置账号、桶配额或私有配置，不上传SVG。保留其生成的media-policy-before.json和media-lifecycle-before.json用于审计。
+
+学生证封存目录不设置“上传后30天”的S3过期规则：须由后端按审核完成时间清理，避免误删待审材料。此实例已核实桶版本控制关闭；如迁移至有版本控制的桶，须另行审查永久删除策略。数据卷目录是MinIO内部结构，不直接复制或手动编辑其中的对象文件。
+
 这是独立于已有 Redis / MongoDB / RabbitMQ / Elasticsearch 的部署目录。具体接入与验收见 [对象存储记录](https://github.com/RainSile/SchoolPerks/blob/campus-doc/docs/MINIO-SETUP.md)。不要把本目录复制到已有基础设施项目后执行整体重启。
 
 ## 固定构建

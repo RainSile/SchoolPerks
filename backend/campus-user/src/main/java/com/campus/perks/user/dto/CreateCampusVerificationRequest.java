@@ -12,7 +12,12 @@ public record CreateCampusVerificationRequest(
         @Schema(description = "真实姓名，仅加密存储")
         String realName,
     @NotBlank @Size(max = 64) @Pattern(regexp = "[A-Za-z0-9-]+") @Schema(description = "学号，仅加密存储")
-        String studentNumber) {
+        String studentNumber,
+    @NotBlank @Size(max=64) @Schema(description="本人上传并确认的STUDENT_CARD学生证首页图片ID")
+        String studentCardFileId) {
+  public CreateCampusVerificationRequest(String schoolId,String realName,String studentNumber) {
+    this(schoolId,realName,studentNumber,null);
+  }
   @Override
   public String toString() {
     return "CreateCampusVerificationRequest[REDACTED]";

@@ -38,6 +38,7 @@ public class PostServiceImpl implements PostService {
   private final ObjectMapper json;
   private final Clock clock;
   private final CommunityProperties config;
+  private final PublicUserPort publicUsers;
 
   public PostServiceImpl(
       CommunityMapper db,
@@ -49,7 +50,8 @@ public class PostServiceImpl implements PostService {
       SearchChangeEvents events,
       ObjectMapper json,
       Clock clock,
-      CommunityProperties config) {
+      CommunityProperties config,
+      PublicUserPort publicUsers) {
     this.db = db;
     this.interactions = interactions;
     this.accounts = accounts;
@@ -60,6 +62,7 @@ public class PostServiceImpl implements PostService {
     this.json = json;
     this.clock = clock;
     this.config = config;
+    this.publicUsers = publicUsers;
   }
 
   private ApplicationException error(HttpStatus status, String code, String text) {
@@ -178,7 +181,8 @@ public class PostServiceImpl implements PostService {
         p.publishedAt(),
         own && Set.of("HIDDEN", "REJECTED").contains(p.status())
             ? db.latestReason(p.id(), p.status())
-            : null);
+            : null,
+        publicUsers.profile(""+p.authorId()));
   }
 
   private Review view(CommunityRows.Review r) {
@@ -199,7 +203,8 @@ public class PostServiceImpl implements PostService {
 
   private Comment view(CommunityRows.Comment c) {
     return new Comment(
-        "" + c.id(), "" + c.postId(), c.body(), c.status(), c.version(), c.createdAt());
+        "" + c.id(), "" + c.postId(), c.body(), c.status(), c.version(), c.createdAt(),
+        publicUsers.profile(""+c.authorId()));
   }
 
   private Report view(CommunityRows.Report r) {

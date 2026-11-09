@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface FileMapper {
+  @Update("UPDATE campus_file_object SET status='DELETED' WHERE id=#{id} AND purpose='STUDENT_CARD'")
+  int markStudentCardDeleted(String id);
   String SELECT =
       "SELECT"
           + " id,owner_id,purpose,original_name,content_type,declared_size,staging_key,immutable_key,status,created_at,expires_at,completed_at"

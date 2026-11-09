@@ -36,9 +36,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @EnabledIfEnvironmentVariable(named = "CAMPUS_MINIO_LIVE_TEST", matches = "true")
 @SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
       "campus.auth.enabled=true",
       "campus.security.jwt.enabled=true",
+      "campus.security.allowed-origins=http://127.0.0.1:5173",
       "campus.integrations.minio.enabled=true",
       "campus.files.max-bytes=256",
       "campus.integrations.minio.max-object-bytes=256"
@@ -68,6 +70,10 @@ class MinioBusinessMySqlTest {
   @Autowired AccessTokenIssuer issuer;
   @Autowired ObjectStoragePort storage;
   @Autowired FileProperties files;
+  @Autowired com.campus.perks.user.serviceImpl.CampusEvidenceRetentionService retention;
+  @Autowired javax.sql.DataSource dataSource;
+  @Autowired com.campus.perks.user.service.AuthSecrets authSecrets;
+  @org.springframework.boot.test.web.server.LocalServerPort int backendPort;
   private final List<String> ids = new ArrayList<>(), extraKeys = new ArrayList<>();
   private final HttpClient http =
       HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
@@ -421,6 +427,108 @@ class MinioBusinessMySqlTest {
     mvc.perform(delete("/api/v1/posts/" + postId).header("Authorization", token(owner)))
         .andExpect(status().isNoContent());
     post(images, other, Map.of()).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void studentCardActualBytesArePrivateAndRemovedAfterReviewedRetention() throws Exception {
+    byte[] png=syntheticPng();
+    var upload=ticket("image/png",png.length,"STUDENT_CARD");
+    String file=upload.path("id").asText();
+    assertThat(putBytes(URI.create(upload.path("uploadUrl").asText()),"image/png",png)).isEqualTo(200);
+    complete(file,owner).andExpect(status().isOk());
+    long school=insert("INSERT INTO campus_school(name) VALUES(?)","minio-card-"+UUID.randomUUID());
+    String application=body(post("/users/me/campus-verifications",owner,
+      Map.of("schoolId",""+school,"realName","合成测试同学","studentNumber","SYNTHETIC-CARD","studentCardFileId",file))
+      .andExpect(status().isCreated())).path("id").asText();
+    grant(admin,"campus:review");
+    String route="/admin/campus-verifications/"+application+"/student-card-download-tickets";
+    post(route,other,Map.of()).andExpect(status().isForbidden());
+    post("/users/me/campus-verifications/"+application+"/student-card-download-tickets",other,Map.of()).andExpect(status().isNotFound());
+    URI signed=URI.create(body(post(route,admin,Map.of()).andExpect(status().isOk())).path("url").asText());
+    assertThat(bytes(signed)).isEqualTo(png);
+    URI unsigned=new URI(signed.getScheme(),signed.getAuthority(),signed.getPath(),null,null);
+    assertThat(http.send(HttpRequest.newBuilder(unsigned).GET().build(),HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(403);
+    assertThat(retention.purge(application)).isFalse();
+    post("/admin/campus-verifications/"+application+"/reviews",admin,Map.of("decision","APPROVED","reason","合成照片流程验证")).andExpect(status().isCreated());
+    jdbc.update("UPDATE campus_campus_verification SET reviewed_at=DATE_SUB(UTC_TIMESTAMP(3),INTERVAL 31 DAY) WHERE id=?",application);
+    assertThat(retention.purge(application)).isTrue();
+    assertThat(http.send(HttpRequest.newBuilder(signed).GET().build(),HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(404);
+    post(route,admin,Map.of()).andExpect(status().isGone());
+    assertThat(jdbc.queryForObject("SELECT school_id FROM campus_user WHERE id=?",Long.class,owner)).isEqualTo(school);
+  }
+
+  @Test
+  void actualAvatarAndDefaultAssetsAreCloudObjectsWithScopedBinding() throws Exception {
+    byte[] png=syntheticPng();
+    var upload=ticket("image/png",png.length,"USER_AVATAR");String file=upload.path("id").asText();
+    assertThat(putBytes(URI.create(upload.path("uploadUrl").asText()),"image/png",png)).isEqualTo(200);
+    complete(file,owner).andExpect(status().isOk());
+    mvc.perform(put("/api/v1/users/me/avatar").header("Authorization",token(other)).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of("fileId",file)))).andExpect(status().isNotFound());
+    mvc.perform(put("/api/v1/users/me/avatar").header("Authorization",token(owner)).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of("fileId",file)))).andExpect(status().isOk());
+    var redirect=mvc.perform(get("/api/v1/users/"+owner+"/avatar")).andExpect(status().isFound()).andReturn().getResponse();
+    assertThat(bytes(URI.create(redirect.getHeader("Location")))).isEqualTo(png);
+    post("/uploads/"+file+"/download-tickets",other,Map.of()).andExpect(status().isNotFound());
+    for(String key:List.of("campus-blue","sunshine","fresh-green","star-purple")){
+      var image=mvc.perform(get("/api/v1/default-avatars/"+key+"/image")).andExpect(status().isFound()).andReturn().getResponse();
+      byte[] actual=bytes(URI.create(image.getHeader("Location")));
+      assertThat(actual.length).isGreaterThan(100);
+      assertThat(Arrays.copyOf(actual,8)).isEqualTo(Arrays.copyOf(png,8));
+    }
+  }
+
+  @Test
+  @EnabledIfEnvironmentVariable(named="CAMPUS_MEDIA_BROWSER_TEST",matches="true")
+  @Transactional(propagation=org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+  void realVueStudentCardAndAvatarJourneyUsesActualMinio() throws Exception {
+    long school=0;Process process=null;
+    var roots=List.of(owner,other,merchant,admin);
+    var roles=new ArrayList<Long>();
+    try {
+      school=insert("INSERT INTO campus_school(name) VALUES(?)","synthetic-media-"+UUID.randomUUID());
+      grant(admin,"campus:review");
+      roles.addAll(jdbc.queryForList("SELECT role_id FROM campus_user_role WHERE user_id=?",Long.class,admin));
+      String password=UUID.randomUUID()+"aA7!";
+      String hash=new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(12).encode(password);
+      for(long actor:new long[]{owner,admin})jdbc.update("UPDATE campus_user SET password_hash=? WHERE id=?",hash,actor);
+      Path root=Path.of(System.getenv("CAMPUS_FRONTEND_PROJECT_ROOT"));
+      Path evidence=Path.of(System.getenv("CAMPUS_BUSINESS_EVIDENCE_DIR"));
+      var command=new ProcessBuilder("node",root.resolve("frontend/scripts/live-media-browser-check.mjs").toString())
+        .directory(root.toFile()).redirectErrorStream(true).redirectOutput(evidence.resolve("media-browser-live.log").toFile());
+      var environment=command.environment();
+      environment.put("CAMPUS_MEDIA_BACKEND_PORT",""+backendPort);
+      environment.put("CAMPUS_MEDIA_USER_PHONE",jdbc.queryForObject("SELECT phone FROM campus_user WHERE id=?",String.class,owner));
+      environment.put("CAMPUS_MEDIA_ADMIN_PHONE",jdbc.queryForObject("SELECT phone FROM campus_user WHERE id=?",String.class,admin));
+      environment.put("CAMPUS_MEDIA_PASSWORD",password);
+      environment.put("CAMPUS_MEDIA_PNG_BASE64",Base64.getEncoder().encodeToString(syntheticPng()));
+      environment.put("CAMPUS_MEDIA_SCHOOL_ID",""+school);
+      process=command.start();
+      assertThat(process.waitFor(150,TimeUnit.SECONDS)).as("Real media browser journey timeout").isTrue();
+      assertThat(process.exitValue()).as("Inspect private media-browser-live.log").isZero();
+      assertThat(jdbc.queryForObject("SELECT status FROM campus_campus_verification WHERE user_id=?",String.class,owner)).isEqualTo("APPROVED");
+      assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM campus_user_avatar WHERE user_id=? AND file_id IS NOT NULL",Integer.class,owner)).isEqualTo(1);
+    } finally {
+      if(process!=null && process.isAlive()){process.descendants().forEach(ProcessHandle::destroyForcibly);process.destroyForcibly();}
+      for(long actor:roots){
+        var files=jdbc.queryForList("SELECT staging_key,immutable_key FROM campus_file_object WHERE owner_id=?",actor);
+        for(var keys:files){storage.delete(keys.get("staging_key").toString());storage.delete(keys.get("immutable_key").toString());}
+        String phone=jdbc.queryForObject("SELECT phone FROM campus_user WHERE id=?",String.class,actor);
+        jdbc.update("DELETE FROM campus_verification_rate WHERE rate_key=?",authSecrets.hash("rate:password-phone:"+phone));
+        // Remove this exact fixture row before generic nullable-FK cleanup; avatar source has an XOR CHECK.
+        jdbc.update("DELETE FROM campus_user_avatar WHERE user_id=?",actor);
+      }
+      var cleanupRoots=new LinkedHashMap<String,List<Long>>();
+      cleanupRoots.put("campus_user",roots);if(school>0)cleanupRoots.put("campus_school",List.of(school));if(!roles.isEmpty())cleanupRoots.put("campus_role",roles);
+      new com.campus.perks.boot.support.BusinessDatasetCleanup(dataSource,cleanupRoots).clean();
+      jdbc.update("DELETE FROM campus_verification_rate WHERE rate_key=?",authSecrets.hash("rate:password-ip:127.0.0.1"));
+    }
+  }
+
+  private byte[] syntheticPng() throws Exception {
+    var image=new java.awt.image.BufferedImage(2,2,java.awt.image.BufferedImage.TYPE_INT_ARGB);
+    for(int x=0;x<2;x++)for(int y=0;y<2;y++)image.setRGB(x,y,0xff2454da);
+    var output=new java.io.ByteArrayOutputStream();
+    javax.imageio.ImageIO.write(image,"png",output);
+    return output.toByteArray();
   }
 
   private JsonNode browser(Map<String, Object> request) throws Exception {

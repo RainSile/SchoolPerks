@@ -14,6 +14,7 @@ $settings=@{
  JAVA_HOME='E:\JDK17';DB_HOST='127.0.0.1';DB_PORT='3306';DB_NAME='campus_perks_db';DB_POOL_SIZE='3'
  CAMPUS_MYSQL_TEST='true';CAMPUS_EXTERNAL_TEST='false';CAMPUS_BUSINESS_EVIDENCE_DIR=$evidence
  CAMPUS_PROJECT_ROOT=$root;CAMPUS_MINIO_LIVE_TEST='false'
+ CAMPUS_EVIDENCE_CLEANUP_ENABLED='false'
  CAMPUS_LIVE_BROWSER_TEST=$(if($TestSelection -match 'BusinessLive'){'true'}else{'false'})
  CAMPUS_LIVE_MAP_TEST=$(if($UseMapConfiguration){'true'}else{'false'})
  AI_ENABLED='false';ASSISTANT_ENABLED='false';MARKETING_AI_ENABLED='false';PINECONE_ENABLED='false'

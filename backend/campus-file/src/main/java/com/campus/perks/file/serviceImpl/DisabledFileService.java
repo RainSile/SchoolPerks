@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(name = "campus.auth.enabled", havingValue = "false", matchIfMissing = true)
 public class DisabledFileService implements FileService, FileAccessPort {
   private final FileProperties p;
+  private final com.campus.perks.file.config.ImageStorageProperties images;
 
-  public DisabledFileService(FileProperties p) {
+  public DisabledFileService(FileProperties p,com.campus.perks.file.config.ImageStorageProperties images) {
     this.p = p;
+    this.images = images;
   }
 
   private ApplicationException unavailable() {
@@ -32,7 +34,8 @@ public class DisabledFileService implements FileService, FileAccessPort {
         p.maxBytes(),
         p.allowedTypes(),
         p.uploadTtl().toSeconds(),
-        p.downloadTtl().toSeconds());
+        p.downloadTtl().toSeconds(),
+        images.avatarMaxBytes());
   }
 
   public UploadTicket create(CreateUploadRequest r) {
