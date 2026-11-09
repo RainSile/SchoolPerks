@@ -1,3 +1,5 @@
+**在线体验：[https://45.192.110.126/app](https://45.192.110.126/app)**
+
 # SchoolPerks · 校园周边优惠
 
 <!-- campus-sms-20261028-start -->
