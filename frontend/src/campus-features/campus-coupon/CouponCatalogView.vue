@@ -6,6 +6,10 @@ import { useSessionStore } from '../../campus-stores/session'
 import PaginationBar from '../../campus-shared/PaginationBar.vue'
 import CampusIcon from '../../campus-shared/CampusIcon.vue'
 import CampusOrnament from '../../campus-shared/CampusOrnament.vue'
+import coffeeTicket from '../../assets/campus-exp/coffee-ticket.webp'
+import ticketWallet from '../../assets/campus-exp/ticket-wallet.webp'
+import mapDiscovery from '../../assets/campus-exp/map-discovery.webp'
+import communityNotes from '../../assets/campus-exp/community-notes.webp'
 const session = useSessionStore(), rows = ref<PublicCoupon[]>([]), schools = ref<School[]>([])
 const keyword = ref(''), school = ref(''), page = ref(1), total = ref(0), busy = ref(false), message = ref('')
 const filter = ref('all'), claimed = ref(''), now = ref(Date.now())
@@ -56,9 +60,9 @@ async function claim(row: PublicCoupon) {
       <CampusOrnament kind="clip" class="intro-fastener" />
       <div class="discovery-copy"><h1>发现校园周边的好优惠</h1><p>从一顿午饭、一杯咖啡开始，<br />把周边生活逛出新发现。</p><div class="discovery-invitation"><CampusIcon name="spark" :size="17" />和同学一起，把日常过得有意思。<CampusOrnament kind="arrow" class="invitation-arrow" /></div></div>
       <nav class="notice-slips" aria-label="课间发现便签">
-        <button class="notice-slip coffee-slip" type="button" :disabled="busy" @click="findTopic('咖啡')"><CampusOrnament kind="pin" class="slip-fastener" /><CampusIcon name="coffee" :size="23" /><strong>给课间，加点咖啡香</strong><span>找找咖啡优惠<CampusIcon name="arrow" :size="15" /></span></button>
-        <RouterLink class="notice-slip explore-slip" to="/nearby"><CampusOrnament kind="clip" class="slip-fastener" /><CampusIcon name="map" :size="23" /><strong>下课，去周边！</strong><span>发现附近小店<CampusIcon name="arrow" :size="15" /></span></RouterLink>
-        <RouterLink class="notice-slip share-slip" to="/community"><CampusOrnament kind="tape" class="slip-fastener" /><CampusIcon name="community" :size="23" /><strong>把发现贴上来</strong><span>看看同学的探店手记<CampusIcon name="arrow" :size="15" /></span></RouterLink>
+        <button class="notice-slip coffee-slip" type="button" :disabled="busy" @click="findTopic('咖啡')"><CampusOrnament kind="pin" class="slip-fastener" /><img class="notice-slip-art" :src="coffeeTicket" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>给课间，加点咖啡香</strong><span>找找咖啡优惠<CampusIcon name="arrow" :size="15" /></span></button>
+        <RouterLink class="notice-slip explore-slip" to="/nearby"><CampusOrnament kind="clip" class="slip-fastener" /><img class="notice-slip-art" :src="mapDiscovery" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>下课，去周边！</strong><span>发现附近小店<CampusIcon name="arrow" :size="15" /></span></RouterLink>
+        <RouterLink class="notice-slip share-slip" to="/community"><CampusOrnament kind="pin" class="slip-fastener" /><img class="notice-slip-art" :src="communityNotes" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>把发现贴上来</strong><span>看看同学的探店手记<CampusIcon name="arrow" :size="15" /></span></RouterLink>
       </nav>
     </div>
     <div class="discovery-layout">
@@ -85,7 +89,7 @@ async function claim(row: PublicCoupon) {
       </div>
       <aside class="campus-board" aria-label="校园优惠使用指引">
         <h2 class="board-title"><CampusIcon name="pushpin" :size="21" />校园布告栏<span>有用的小提醒</span></h2>
-        <section class="board-note"><CampusOrnament kind="pin" class="board-fastener" /><h2>你的校园生活票夹</h2><p>领取的优惠都会放在券包里。到店之前，先看看使用门槛和有效期。</p><RouterLink class="board-action" to="/account/coupons">我的券包 →</RouterLink><CampusOrnament kind="stamp" class="board-stamp" /></section>
+        <section class="board-note"><CampusOrnament kind="pin" class="board-fastener" /><h2 class="wallet-heading"><span>你的校园生活票夹</span><img class="ticket-wallet-art" :src="ticketWallet" alt="" aria-hidden="true" width="640" height="427" loading="lazy" decoding="async" /></h2><p>领取的优惠都会放在券包里。到店之前，先看看使用门槛和有效期。</p><RouterLink class="board-action" to="/account/coupons">我的券包 →</RouterLink><CampusOrnament kind="stamp" class="board-stamp" /></section>
         <section class="board-section"><h2><CampusIcon name="spark" :size="17" />这页有哪些发现</h2><dl class="board-stats"><div><dt>本页优惠</dt><dd>{{ rows.length }}<small>张</small></dd></div><div><dt>来自门店</dt><dd>{{ merchantCount }}<small>家</small></dd></div><div><dt>校园专享</dt><dd>{{ campusCount }}<small>张</small></dd></div></dl><p class="board-caption">根据当前已加载页面统计</p></section>
         <section class="board-section"><h2>领到了，然后呢？</h2><ol class="usage-steps"><li><CampusIcon name="ticket" :size="17" /><span>领一张喜欢的优惠<small>先确认门槛、校园限制与有效期</small></span></li><li><CampusIcon name="user" :size="17" /><span>从券包打开核销码<small>到店时生成，短时凭据妥善保管</small></span></li><li><CampusIcon name="check" :size="17" /><span>交给本店店员核销<small>使用结果以券包状态为准</small></span></li></ol></section>
         <section class="board-section"><h2>校园生活，继续探索</h2><RouterLink class="board-row" to="/nearby"><CampusIcon name="map" :size="18" /><span>看看附近商家<small>从你的位置出发</small></span><CampusIcon name="chevron" :size="15" /></RouterLink><RouterLink class="board-row" to="/community"><CampusIcon name="community" :size="18" /><span>同学的探店分享<small>发现下一站好去处</small></span><CampusIcon name="chevron" :size="15" /></RouterLink><RouterLink class="text-link" to="/account/campus-verification">前往认证</RouterLink><p class="board-caption">校园专享优惠需通过对应学校认证。</p></section>
@@ -103,10 +107,24 @@ async function claim(row: PublicCoupon) {
   margin-bottom: 24px;
   position: relative;
   background: #edf3ff;
+  background-image: linear-gradient(90deg, #f5f9fff0, #f5f9ff80), url('../../assets/campus-exp/board-paper.webp');
+  background-size: cover;
+  background-position: center;
   border: 1px solid #d8e3f8;
   border-radius: 6px;
 }
 .intro-fastener { position: absolute; top: -19px; left: 24px; }
+.notice-slip-art { width: 64px; height: 43px; object-fit: contain; pointer-events: none; transition: transform 220ms var(--campus-ease); }
+.wallet-heading { display: flex; align-items: center; gap: 8px; }
+.wallet-heading > span { flex: 1; min-width: 0; }
+.ticket-wallet-art { width: 64px; height: 43px; flex: none; object-fit: contain; pointer-events: none; transition: transform 220ms var(--campus-ease); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .notice-slip:hover .notice-slip-art { transform: rotate(-5deg) translateY(-2px); }
+  .board-note:hover .ticket-wallet-art { transform: rotate(4deg) translateY(-2px); }
+}
+@media (max-width: 520px) {
+  .notice-slip-art { width: 46px; height: 31px; }
+}
 .discovery-copy h1 { font-size: 32px; line-height: 1.45; color: var(--campus-blue-strong); margin-bottom: 9px; }
 .invitation-arrow { width: 52px; height: 27px; margin-left: 3px; }
 .discovery-copy p { color: #455a7a; font-size: 14px; line-height: 1.85; margin: 0; }
