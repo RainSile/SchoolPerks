@@ -37,7 +37,7 @@ Use case: stylized-concept. Asset type: compact transparent-background paper-cra
 
 ## 入口组一致性修正
 
-咖啡、附近商家、探店分享三个入口全部使用同一咖啡素材作为风格参照的纸艺图，不再混用线性主图。三个主图使用统一展示尺寸、对齐与动效，分享入口的胶带换为图钉。
+咖啡、附近商家、探店分享三个入口全部使用同一咖啡素材作为风格参照的纸艺图，不再混用线性主图。后续按用户反馈将三张容器整体改为同款邮票，移除入口上的图钉、回形针和彩色便签底。
 
 ### map-discovery
 
@@ -70,3 +70,7 @@ Generate a NEW isolated decorative artwork. Supplied coffee-and-ticket image is 
 用户要求仅票券图形、站名独立显示，并从三款实际预览中选择 C。Logo 采用矢量绘制，源文件为 [campus-logo.svg](frontend/src/assets/campus-exp/campus-logo.svg)，统一由 CampusMark 组件用于学生端、商家端、管理端及页脚。HTML 关联同一 SVG，并提供 [16px](frontend/public/favicon-16.png)、[32px](frontend/public/favicon-32.png) PNG 后备图标。浏览器验证确认构建后品牌图与 SVG favicon 的路径几何、变换和配色一致，两个 PNG 图标正常加载。
 
 本次提交仅在实验分支，未部署或合并到前端主分支。视觉预览使用示例数据，不发送短信，不执行领券、支付、审核等业务写操作。
+
+## 邮票入口更新
+
+三枚同款浅米白纸纹邮票，四边为真正透明的 CSS 齿孔，内框统一校园蓝。纸纹复用既有生成素材，齿孔及文字由原生界面绘制，保留实际按钮和链接。入口改为「课间咖啡」「周边小店」「探店分享」，对应原关键词查询和路由；不仿造邮资、折扣或商家活动信息。窄屏适配到 320px；键盘焦点轮廓位于齿孔内侧，减少动态效果设置下停用抬升和倾斜。已确认的 C 款 Logo 与 favicon 保留。

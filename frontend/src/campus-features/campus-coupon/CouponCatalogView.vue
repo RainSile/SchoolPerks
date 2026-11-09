@@ -59,10 +59,10 @@ async function claim(row: PublicCoupon) {
     <div class="discovery-intro">
       <CampusOrnament kind="clip" class="intro-fastener" />
       <div class="discovery-copy"><h1>发现校园周边的好优惠</h1><p>从一顿午饭、一杯咖啡开始，<br />把周边生活逛出新发现。</p><div class="discovery-invitation"><CampusIcon name="spark" :size="17" />和同学一起，把日常过得有意思。<CampusOrnament kind="arrow" class="invitation-arrow" /></div></div>
-      <nav class="notice-slips" aria-label="课间发现便签">
-        <button class="notice-slip coffee-slip" type="button" :disabled="busy" @click="findTopic('咖啡')"><CampusOrnament kind="pin" class="slip-fastener" /><img class="notice-slip-art" :src="coffeeTicket" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>给课间，加点咖啡香</strong><span>找找咖啡优惠<CampusIcon name="arrow" :size="15" /></span></button>
-        <RouterLink class="notice-slip explore-slip" to="/nearby"><CampusOrnament kind="clip" class="slip-fastener" /><img class="notice-slip-art" :src="mapDiscovery" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>下课，去周边！</strong><span>发现附近小店<CampusIcon name="arrow" :size="15" /></span></RouterLink>
-        <RouterLink class="notice-slip share-slip" to="/community"><CampusOrnament kind="pin" class="slip-fastener" /><img class="notice-slip-art" :src="communityNotes" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>把发现贴上来</strong><span>看看同学的探店手记<CampusIcon name="arrow" :size="15" /></span></RouterLink>
+      <nav class="notice-slips" aria-label="校园生活邮票入口">
+        <button class="notice-slip coffee-slip" type="button" aria-label="课间咖啡，查找咖啡优惠" :disabled="busy" @click="findTopic('咖啡')"><span class="stamp-meta" aria-hidden="true">校园日常 · 课间</span><img class="notice-slip-art" :src="coffeeTicket" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>课间咖啡</strong><span class="stamp-action">找咖啡优惠<CampusIcon name="arrow" :size="15" /></span></button>
+        <RouterLink class="notice-slip explore-slip" to="/nearby"><span class="stamp-meta" aria-hidden="true">校园日常 · 周边</span><img class="notice-slip-art" :src="mapDiscovery" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>周边小店</strong><span class="stamp-action">发现附近商家<CampusIcon name="arrow" :size="15" /></span></RouterLink>
+        <RouterLink class="notice-slip share-slip" to="/community"><span class="stamp-meta" aria-hidden="true">校园日常 · 手记</span><img class="notice-slip-art" :src="communityNotes" alt="" aria-hidden="true" width="640" height="427" decoding="async" /><strong>探店分享</strong><span class="stamp-action">看看同学手记<CampusIcon name="arrow" :size="15" /></span></RouterLink>
       </nav>
     </div>
     <div class="discovery-layout">
@@ -129,18 +129,35 @@ async function claim(row: PublicCoupon) {
 .invitation-arrow { width: 52px; height: 27px; margin-left: 3px; }
 .discovery-copy p { color: #455a7a; font-size: 14px; line-height: 1.85; margin: 0; }
 .discovery-invitation { display: flex; align-items: center; gap: 7px; color: #71500b; font-size: 13px; margin-top: 14px; }
-.notice-slips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 10px 0; }
-.notice-slip { min-width: 0; min-height: 136px; padding: 17px 12px 12px; position: relative; display: flex; align-items: flex-start; flex-direction: column; gap: 10px; border: 1px solid #e8d08c; border-radius: 2px; background: #fff4cc; color: #71500b; font-size: 13px; text-align: left; transform: rotate(-3deg); transition: transform 220ms var(--campus-ease), background-color 150ms; }
-.slip-fastener { position: absolute; top: -12px; right: 13px; }
-.notice-slip strong { font-size: 17px; line-height: 1.6; }
-.notice-slip > span { display: flex; gap: 4px; align-items: center; font-size: 12px; font-weight: 400; margin-top: auto; }
-.notice-slip:hover, .notice-slip:focus-visible { transform: rotate(0) translateY(-3px); }
-.notice-slip.coffee-slip:hover:not(:disabled) { background: #ffebac; }
-.notice-slip:disabled { background: #fff4cc; color: #71500b; cursor: wait; }
-.explore-slip { background: white; border-color: #b9caec; color: var(--campus-blue-strong); transform: rotate(2deg) translateY(-4px); }
-.explore-slip .slip-fastener { top: -9px; right: 15px; color: #7795ca; }
-.share-slip .slip-fastener { top: -7px; right: calc(50% - 20px); }
-.share-slip { background: #fff0e7; border-color: #efcbb5; color: #91421e; transform: rotate(-2deg) translateY(5px); }
+.notice-slips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 8px 0; }
+.notice-slip {
+  --stamp-ink: #355d9b;
+  min-width: 0; min-height: 178px; padding: 17px 15px 18px;
+  position: relative; display: flex; align-items: center; flex-direction: column; gap: 7px;
+  border: 0; border-radius: 0; color: var(--stamp-ink); text-align: center; text-decoration: none;
+  background: #fffdf5;
+  background-image: linear-gradient(#fffdf5df, #fffdf5df), url('../../assets/campus-exp/board-paper.webp');
+  background-size: cover; background-position: center;
+  /* Edge-only masks make actual perforations; the central live text stays solid. */
+  --stamp-edge: linear-gradient(#000 0 0) center / calc(100% - 12px) calc(100% - 12px) no-repeat,
+    radial-gradient(circle at 50% 0, #0000 3px, #000 3.5px) top / 12px 6px repeat-x,
+    radial-gradient(circle at 50% 100%, #0000 3px, #000 3.5px) bottom / 12px 6px repeat-x,
+    radial-gradient(circle at 0 50%, #0000 3px, #000 3.5px) left / 6px 12px repeat-y,
+    radial-gradient(circle at 100% 50%, #0000 3px, #000 3.5px) right / 6px 12px repeat-y;
+  -webkit-mask: var(--stamp-edge); mask: var(--stamp-edge);
+  transform: rotate(-1.5deg);
+  transition: transform 220ms var(--campus-ease), background-color 150ms;
+}
+.notice-slip::before { content: ''; position: absolute; inset: 10px; border: 1px solid #a9bbd4; pointer-events: none; }
+.notice-slip .stamp-meta { display: block; font-size: 10px; line-height: 1.5; letter-spacing: .06em; font-weight: 400; color: #6b7c92; }
+.notice-slip .notice-slip-art { width: 88px; height: 59px; }
+.notice-slip strong { font-size: 16px; line-height: 1.5; font-weight: 650; }
+.notice-slip .stamp-action { display: flex; justify-content: center; gap: 4px; align-items: center; font-size: 12px; font-weight: 400; margin-top: auto; line-height: 1.5; }
+.notice-slip:hover:not(:disabled), .notice-slip:focus-visible { background-color: #fff8e8; transform: rotate(0) translateY(-3px); }
+.notice-slip:focus-visible { outline: 3px solid var(--campus-blue); outline-offset: -10px; }
+.notice-slip:disabled { color: var(--stamp-ink); cursor: wait; }
+.explore-slip { transform: rotate(1deg) translateY(-3px); }
+.share-slip { transform: rotate(-1deg) translateY(2px); }
 .discovery-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 28px; align-items: start; }
 .discovery-main { min-width: 0; }
 .discovery-filters { margin: 0 0 10px; }
@@ -217,7 +234,7 @@ async function claim(row: PublicCoupon) {
   .discovery-intro { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .discovery-copy { display: block; }
   .discovery-copy h1 { font-size: 27px; }.discovery-invitation { max-width: none; margin-top: 10px; }
-  .notice-slip { min-height: 108px; gap: 5px; }.notice-slips { gap: 18px; }
+  .notice-slip { min-height: 165px; gap: 5px; }.notice-slips { gap: 18px; }
   .discovery-layout { grid-template-columns: minmax(0, 1fr) 225px; gap: 20px; }
   .coupon-tickets { grid-template-columns: minmax(0, 1fr); }.coupon-ticket { grid-template-columns: 80px minmax(0, 1fr); }.ticket-content h2 { font-size: 16px; }
 }
@@ -229,12 +246,20 @@ async function claim(row: PublicCoupon) {
 @media(max-width: 520px) {
   .discovery-intro { padding: 17px 14px 12px; margin-bottom: 18px; gap: 6px; }
   .discovery-copy { display: block; }.discovery-copy h1 { font-size: 24px; }.discovery-copy p { font-size: 13px; }.discovery-copy p br { display: none; }.discovery-invitation { max-width: none; margin-top: 8px; font-size: 12px; }
-  .notice-slips { gap: 8px; padding-top: 13px; }.notice-slip { min-height: 102px; padding: 12px 7px 8px; gap: 5px; }.notice-slip > .campus-icon { width: 20px; height: 20px; }.notice-slip strong { font-size: 12px; }.notice-slip > span { font-size: 11px; line-height: 1.5; }.notice-slip > span .campus-icon { display: none; }
+  .notice-slips { gap: 7px; padding-top: 13px; }
+  .notice-slip { min-height: 140px; padding: 13px 12px 15px; gap: 5px; }
+  .notice-slip::before { inset: 7px; }
+  .notice-slip .stamp-meta { font-size: 8px; letter-spacing: 0; }
+  .notice-slip .notice-slip-art { width: 58px; height: 39px; max-width: 100%; }
+  .notice-slip strong { font-size: 12px; }
+  .notice-slip .stamp-action { font-size: 10px; }
+  .notice-slip .stamp-action .campus-icon { display: none; }
   .discovery-filters { grid-template-columns: minmax(0, 1fr) 110px; gap: 8px; }.discovery-filters input,.discovery-filters select { padding: 7px 8px; }.discovery-filters button { padding-inline: 8px; }
   .topic-strip { gap: 4px 14px; }.topic-strip button { min-height: 32px; }.topic-strip > span { font-size: 12px; }
   .coupon-tabs { width: 100%; justify-content: space-between; gap: 0; }.coupon-tabs button { min-height: 44px; }.result-note { display: block; padding-bottom: 9px; }
   .coupon-tickets { padding-inline: 12px; }.coupon-ticket { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 18px 0; }.ticket-value { padding-inline: 4px; }.ticket-number { font-size: 26px; }.ticket-content h2 { font-size: 15px; }.ticket-actions button { min-height: 40px; padding: 7px 10px; }.ticket-merchant { font-size: 13px; }
   .campus-board { grid-template-columns: 1fr; gap: 0; }.board-title { margin: 15px 0 20px; }.board-note { margin-top: 0; }.board-section { padding-block: 18px; }.coupon-loading { grid-template-columns: 1fr; }
 }
-@media(prefers-reduced-motion: reduce) { .ticket-tear,.is-tearing .ticket-content { animation: none; }.notice-slip,.notice-slip:hover,.notice-slip:focus-visible { transform: none; } }
+@media(max-width: 360px) { .notice-slip { padding-inline: 9px; }.notice-slip::before { inset: 6px; } }
+@media(prefers-reduced-motion: reduce) { .ticket-tear,.is-tearing .ticket-content { animation: none; }.notice-slip,.notice-slip:hover,.notice-slip:hover:not(:disabled),.notice-slip:focus-visible { transform: none; transition: none; } }
 </style>

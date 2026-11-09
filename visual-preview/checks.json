@@ -6,21 +6,26 @@
       "width": 1440,
       "overflow": false,
       "paper": true,
-      "images": true
+      "images": true,
+      "stamps": true
     },
     {
       "width": 390,
       "overflow": false,
       "paper": true,
-      "images": true
+      "images": true,
+      "stamps": true
     },
     {
       "width": 320,
       "overflow": false,
       "paper": true,
-      "images": true
+      "images": true,
+      "stamps": true
     }
   ],
+  "postagePerforations": true,
+  "keyboardFocus": true,
   "coffeeFilter": true,
   "reducedMotion": true,
   "approvedLogo": "C",

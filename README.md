@@ -10,6 +10,8 @@
 
 [电脑效果](visual-preview/desktop.png) · [手机效果](visual-preview/mobile.png) · [三入口统一效果](visual-preview/entry-family.png)
 
+三个入口已按后续反馈改成同款邮票：浅色纸纹、四边齿孔和蓝色内框，保留咖啡／地图／手记纸艺图案与原有操作。
+
 Vue 3 + TypeScript + Vite 的校园周边优惠平台界面，包含用户、商家、管理员三端。登录后根据服务端账号类型进入对应端，菜单与资源访问同时受服务端权限校验。
 
 ## 仓库分支
