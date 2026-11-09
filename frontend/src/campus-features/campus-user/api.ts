@@ -4,7 +4,14 @@ export interface UserProfile {
   accountType: import('../../campus-router/portal').AccountType; homePath: string
   id: string; nickname: string; maskedPhone: string; schoolId: string | null; schoolName: string | null
   campusVerificationStatus: string; permissions: string[]
+  avatar?: Avatar
 }
+export interface Avatar { fileId: string | null; defaultKey: string | null; imageUrl: string }
+export interface DefaultAvatar { key: string; label: string; imageUrl: string }
+export const getDefaultAvatars = () => transport<DefaultAvatar[]>('/default-avatars')
+export const setAvatar = (selection: { fileId: string } | { defaultKey: string }) => request<Avatar>('/users/me/avatar', { method: 'PUT', body: JSON.stringify(selection) })
+export const getVerificationCapabilities = () => request<{ photoRequired: boolean; retentionDays: number }>('/users/me/campus-verifications/capabilities')
+export const studentCardTicket = (id: string) => request<import('../campus-file/api').DownloadTicket>(`/users/me/campus-verifications/${encodeURIComponent(id)}/student-card-download-tickets`, { method: 'POST' })
 export interface SessionTokens {
   sessionId: string; tokenType: 'Bearer'; accessToken: string; accessExpiresAt: string
   refreshToken: string; refreshExpiresAt: string
@@ -15,6 +22,7 @@ export interface School { id: string; name: string }
 export interface CampusVerification {
   id: string; schoolId: string; schoolName: string; status: string; submittedAt: string
   reviewedAt: string | null; reviewReason: string | null
+  evidenceAvailable?: boolean; evidenceDeletedAt?: string | null
 }
 export const getCapabilities = () => transport<Capabilities>('/authentication-capabilities')
 export const createChallenge = (phone: string, purpose: 'LOGIN' | 'REGISTER' | 'RESET_PASSWORD' = 'LOGIN') => transport<Challenge>('/verification-challenges', {
@@ -30,6 +38,6 @@ export const changePassword = (currentPassword: string, password: string) => req
 export const updateProfile = (nickname: string) => request<UserProfile>('/users/me', { method: 'PATCH', body: JSON.stringify({ nickname }) })
 export const getSchools = () => transport<School[]>('/schools')
 export const getVerifications = () => request<CampusVerification[]>('/users/me/campus-verifications')
-export const applyVerification = (schoolId: string, realName: string, studentNumber: string) => request<CampusVerification>('/users/me/campus-verifications', {
-  method: 'POST', body: JSON.stringify({ schoolId, realName, studentNumber }),
+export const applyVerification = (schoolId: string, realName: string, studentNumber: string, studentCardFileId: string) => request<CampusVerification>('/users/me/campus-verifications', {
+  method: 'POST', body: JSON.stringify({ schoolId, realName, studentNumber, studentCardFileId }),
 })

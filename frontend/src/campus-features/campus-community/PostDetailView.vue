@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserAvatar from '../../campus-shared/UserAvatar.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '../../campus-stores/session'
@@ -28,10 +29,12 @@ async function action(operation: 'like' | 'comment' | 'report' | 'images') {
 onMounted(() => load()); watch(() => route.params.id, () => void load())
 </script>
 <template><section><div class="section-heading"><RouterLink class="text-link" to="/community">← 返回社区</RouterLink><button class="secondary" :disabled="busy" @click="load(page)">刷新帖子</button></div><p v-if="message" role="status">{{ message }}</p>
-  <article v-if="post" class="workspace-card"><h1 class="authored-title">{{ post.title }}</h1><p class="post-body">{{ post.body }}</p><p class="muted">{{ post.likeCount }} 人点赞 · {{ post.commentCount }} 条评论</p><div class="button-row"><button :disabled="busy" @click="action('like')">{{ liked ? '取消点赞' : '点赞' }}</button><button v-if="post.imageIds.length" class="secondary" :disabled="busy" @click="action('images')">查看探店图片（{{ post.imageIds.length }}）</button></div>
+  <article v-if="post" class="workspace-card"><div class="community-author"><UserAvatar :image-url="post.author?.avatarUrl" :nickname="post.author?.nickname" /><span>{{ post.author?.nickname ?? '校园同学' }}<small>{{ new Date(post.createdAt).toLocaleString() }}</small></span></div><h1 class="authored-title">{{ post.title }}</h1><p class="post-body">{{ post.body }}</p><p class="muted">{{ post.likeCount }} 人点赞 · {{ post.commentCount }} 条评论</p><div class="button-row"><button :disabled="busy" @click="action('like')">{{ liked ? '取消点赞' : '点赞' }}</button><button v-if="post.imageIds.length" class="secondary" :disabled="busy" @click="action('images')">查看探店图片（{{ post.imageIds.length }}）</button></div>
     <div class="post-images"><img v-for="img in images" :key="img.fileId" :src="img.url" alt="已审核的探店图片" referrerpolicy="no-referrer" /></div>
-    <h2 class="spaced">评论</h2><article v-for="c in rows" :key="c.id"><p class="post-body">{{ c.body }}</p><p class="muted">{{ new Date(c.createdAt).toLocaleString() }}</p></article><p v-if="!rows.length">暂无已审核评论。</p><PaginationBar :page="page" :size="20" :total="total" :disabled="busy" @change="load" />
+    <h2 class="spaced">评论</h2><article v-for="c in rows" :key="c.id"><div class="community-author"><UserAvatar :image-url="c.author?.avatarUrl" :nickname="c.author?.nickname" :size="32" /><span>{{ c.author?.nickname ?? '校园同学' }}</span></div><p class="post-body">{{ c.body }}</p><p class="muted">{{ new Date(c.createdAt).toLocaleString() }}</p></article><p v-if="!rows.length">暂无已审核评论。</p><PaginationBar :page="page" :size="20" :total="total" :disabled="busy" @change="load" />
     <form @submit.prevent="action('comment')"><label for="communityComment">分享评论</label><textarea id="communityComment" v-model="body" maxlength="2000" required rows="3" :disabled="busy" /><button type="submit" :disabled="busy">提交评论审核</button></form>
     <details class="spaced"><summary>举报不当内容</summary><form @submit.prevent="action('report')"><label for="postReportReason">举报原因</label><textarea id="postReportReason" v-model.trim="reason" maxlength="500" required rows="2" :disabled="busy" /><button class="secondary" type="submit" :disabled="busy">提交举报</button></form></details>
   </article>
 </section></template>
+
+<style scoped>.community-author { display:flex;align-items:center;gap:10px;margin:8px 0 16px;font-size:13px;color:var(--text-secondary); }.community-author small { display:block;font-size:11px;margin-top:3px; }</style>

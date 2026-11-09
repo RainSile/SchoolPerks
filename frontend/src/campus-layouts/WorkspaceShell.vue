@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserAvatar from '../campus-shared/UserAvatar.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSessionStore } from '../campus-stores/session'
@@ -24,7 +25,7 @@ watch(() => route.path, () => { menuOpen.value = false })
           <RouterLink :to="home"><CampusIcon name="home" /><span>{{ isMerchant ? '门店首页' : '管理首页' }}</span></RouterLink>
           <RouterLink v-for="entry in visible" :key="entry.path" :to="entry.path"><CampusIcon :name="entry.icon ?? 'file'" /><span>{{ entry.label }}</span></RouterLink>
         </nav>
-        <div class="workspace-account"><RouterLink to="/account"><span class="avatar-initial">{{ session.profile?.nickname?.slice(0, 1) ?? '校' }}</span><span>{{ session.profile?.nickname ?? '当前账号' }}<small>账号与退出</small></span><CampusIcon name="chevron" :size="16" /></RouterLink></div>
+        <div class="workspace-account"><RouterLink to="/account"><UserAvatar :image-url="session.profile?.avatar?.imageUrl" :nickname="session.profile?.nickname" :size="36" /><span>{{ session.profile?.nickname ?? '当前账号' }}<small>账号与退出</small></span><CampusIcon name="chevron" :size="16" /></RouterLink></div>
       </div>
     </aside>
     <div class="workspace-body">

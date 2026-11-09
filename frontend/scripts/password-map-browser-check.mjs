@@ -23,6 +23,8 @@ try {
       const req = route.request(), path = new URL(req.url()).pathname.replace('/api/v1', '')
       const respond = (body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
       const data = () => req.postDataJSON()
+      if (path === '/storage-capabilities') return respond({ enabled: true, available: false, maxBytes: 10485760, avatarMaxBytes: 2097152, allowedTypes: ['image/png','image/jpeg'] })
+      if (path === '/default-avatars') return respond([])
       if (path === '/authentication-capabilities') return respond({ enabled: true, smsAvailable: true, smsSimulated: true, codeLength: 4, resendAfterSeconds: 0, passwordMinLength: 10, passwordMaxBytes: 72 })
       if (path === '/verification-challenges') { purposes.push(data().purpose); return respond({ id: `fixture-${data().purpose}`, status: 'SENT', expiresAt: new Date(Date.now()+300000).toISOString() }, 201) }
       if (path === '/password-sessions') { assert.deepEqual(Object.keys(data()).sort(), ['password','phone']); return respond(tokens, 201) }

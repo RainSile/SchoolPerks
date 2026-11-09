@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserAvatar from '../campus-shared/UserAvatar.vue'
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '../campus-stores/session'
@@ -20,7 +21,7 @@ function search() { if (query.value.trim()) void router.push({ path: '/search', 
     <div class="site-header-inner">
       <RouterLink class="brand" to="/app"><CampusMark /><span>校园周边优惠<small>Campus Perks</small></span></RouterLink>
       <form class="header-search" role="search" @submit.prevent="search"><label class="sr-only" for="siteSearch">站内搜索</label><CampusIcon name="search" :size="18" /><input id="siteSearch" v-model="query" placeholder="搜优惠、商家、探店…" maxlength="100" /><button aria-label="提交站内搜索"><CampusIcon name="arrow" :size="18" /></button></form>
-      <RouterLink v-if="session.authenticated" class="header-account" to="/account"><span class="avatar-initial">{{ session.profile?.nickname?.slice(0, 1) ?? '同' }}</span><span>{{ session.profile?.nickname ?? '同学' }}</span></RouterLink><RouterLink v-else class="login-link" to="/login">登录 / 注册<CampusIcon name="arrow" :size="16" /></RouterLink>
+      <RouterLink v-if="session.authenticated" class="header-account" to="/account"><UserAvatar :image-url="session.profile?.avatar?.imageUrl" :nickname="session.profile?.nickname" :size="32" /><span>{{ session.profile?.nickname ?? '同学' }}</span></RouterLink><RouterLink v-else class="login-link" to="/login">登录 / 注册<CampusIcon name="arrow" :size="16" /></RouterLink>
       <button class="user-menu secondary" :aria-expanded="menuOpen" aria-controls="user-navigation" @click="menuOpen = !menuOpen" aria-label="切换用户端菜单"><CampusIcon :name="menuOpen ? 'close' : 'menu'" /></button>
     </div>
     <div class="site-nav-row"><nav id="user-navigation" aria-label="用户端导航" :class="{ 'is-open': menuOpen }">

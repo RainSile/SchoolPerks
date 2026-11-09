@@ -1,8 +1,9 @@
 import { request, type PageResponse } from '../../campus-shared/http'
 import { transport } from '../../campus-shared/transport'
-export interface Post { id: string; schoolId: string; merchantId: string | null; title: string; body: string; imageIds: string[]; status: string; version: number; likeCount: number; commentCount: number; createdAt: string; publishedAt: string | null; reviewReason: string | null }
+export interface Author { id: string; nickname: string; avatarUrl: string }
+export interface Post { id: string; schoolId: string; merchantId: string | null; title: string; body: string; imageIds: string[]; status: string; version: number; likeCount: number; commentCount: number; createdAt: string; publishedAt: string | null; reviewReason: string | null; author?: Author }
 export interface Content { title: string; body: string; imageIds: string[] }
-export interface Comment { id: string; postId: string; body: string; status: string; version: number; createdAt: string }
+export interface Comment { id: string; postId: string; body: string; status: string; version: number; createdAt: string; author?: Author }
 export interface Review { id: string; postId: string; contentVersion: number; snapshot: Post; status: string; reason: string | null; createdAt: string }
 export interface Report { id: string; postId: string; reason: string; status: string; version: number; resolution: string | null }
 export interface ImageTicket { fileId: string; url: string; expiresAt: string }

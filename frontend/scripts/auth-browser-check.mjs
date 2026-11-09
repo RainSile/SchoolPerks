@@ -31,6 +31,8 @@ try {
   await page.route('**/api/v1/**', async route => {
     const request = route.request(), path = new URL(request.url()).pathname.replace('/api/v1', '')
     const respond = (body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
+    if (path === '/default-avatars') return respond([])
+    if (path === '/storage-capabilities') return respond({ enabled: true, available: true, maxBytes: 10485760, avatarMaxBytes: 2097152, allowedTypes: ['image/png','image/jpeg'] })
     if (path === '/authentication-capabilities') return respond({ enabled: true, smsAvailable, codeLength: 6, resendAfterSeconds: 60 })
     if (path === '/verification-challenges') return respond({ id: 'test-challenge', expiresAt: new Date(Date.now() + 300000).toISOString(), status: 'SENT' }, 201)
     if (path === '/sessions') {
@@ -57,8 +59,12 @@ try {
       }
       return respond(profile)
     }
+    if (path === '/users/me/campus-verifications/capabilities') return respond({ photoRequired: true, retentionDays: 30 })
+    if (path === '/uploads' && request.method() === 'POST') { assert.equal(request.postDataJSON().purpose, 'STUDENT_CARD'); return respond({ id: 'student-card-test', uploadUrl: 'https://image-storage.example.test/student', contentType: 'image/png' }, 201) }
+    if (path === '/uploads/student-card-test/completion') return respond({ id: 'student-card-test', purpose: 'STUDENT_CARD', status: 'READY' })
     if (path === '/users/me/campus-verifications') {
       if (request.method() === 'POST') {
+        assert.equal(request.postDataJSON().studentCardFileId, 'student-card-test')
         history.push({ id: 'test-verification', schoolId: '1', schoolName: '测试学校', status: 'PENDING', submittedAt: new Date().toISOString(), reviewedAt: null, reviewReason: null })
         profile.campusVerificationStatus = 'PENDING'
         return respond(history[0], 201)
@@ -72,6 +78,7 @@ try {
     for (let i = 0; i < 100; i++) { if (await predicate()) return; await new Promise(r => setTimeout(r, 50)) }
     throw new Error('UI condition timed out')
   }
+  await page.route('https://image-storage.example.test/**', route => { assert.equal(route.request().headers().authorization, undefined); return route.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }) })
   await page.goto(`http://127.0.0.1:${port}/account`)
   await page.getByRole('heading', { name: '登录', exact: true }).waitFor()
   await page.getByRole('button', { name: '短信登录', exact: true }).click()
@@ -96,6 +103,9 @@ try {
   await page.getByLabel('学校', { exact: true }).selectOption('1')
   await page.getByLabel('真实姓名').fill('测试姓名')
   await page.getByLabel('学号').fill('TEST2026')
+  assert.equal(await page.getByRole('button', { name: '提交认证申请' }).isDisabled(), true)
+  await page.locator('input[type=file]').last().setInputFiles({ name: 'synthetic.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jZ9sAAAAASUVORK5CYII=', 'base64') })
+  await page.getByText('图片已上传并完成核验。', { exact: true }).waitFor()
   await page.getByRole('button', { name: '提交认证申请' }).click()
   await page.getByText('已有待审核或通过的申请，无需重复提交。').waitFor()
   assert.equal(history.length, 1)
@@ -106,19 +116,24 @@ try {
   })
   assert.equal(refreshCount, 1, 'simultaneous 401s must share one refresh request')
   assert.equal(concurrent[0].id, '1')
+  await page.route('https://image-storage.example.test/**', route => { assert.equal(route.request().headers().authorization, undefined); return route.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }) })
   await page.goto(`http://127.0.0.1:${port}/admin`)
   await page.getByRole('heading', { name: '发现校园周边的好优惠' }).waitFor()
   profile.accountType = 'ADMIN'; profile.homePath = '/admin'; profile.permissions = ['merchant:review']
+  await page.route('https://image-storage.example.test/**', route => { assert.equal(route.request().headers().authorization, undefined); return route.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }) })
   await page.goto(`http://127.0.0.1:${port}/admin`)
   await page.getByRole('heading', { name: '平台运营与审核' }).waitFor()
   profile.permissions = []
+  await page.route('https://image-storage.example.test/**', route => { assert.equal(route.request().headers().authorization, undefined); return route.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }) })
   await page.goto(`http://127.0.0.1:${port}/admin/merchant-applications`)
   await page.getByRole('heading', { name: '暂无访问权限' }).waitFor()
+  await page.route('https://image-storage.example.test/**', route => { assert.equal(route.request().headers().authorization, undefined); return route.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }) })
   await page.goto(`http://127.0.0.1:${port}/account`)
   await page.getByRole('button', { name: '退出当前账号' }).click()
   await page.getByRole('heading', { name: '登录', exact: true }).waitFor()
   assert.equal(logoutCount, 1)
   assert.equal(await page.evaluate(() => sessionStorage.getItem('campus.refresh-token')), null)
+  await page.route('https://image-storage.example.test/**', route => { assert.equal(route.request().headers().authorization, undefined); return route.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }) })
   await page.goto(`http://127.0.0.1:${port}/app`)
   await page.getByRole('link', { name: '前往认证' }).click()
   await page.getByRole('heading', { name: '登录', exact: true }).waitFor()
