@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "data": "local visual fixtures, not real offers or backend business acceptance",
+  "results": [
+    {
+      "width": 1440,
+      "overflow": false,
+      "paper": true,
+      "images": true,
+      "stamps": true
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "paper": true,
+      "images": true,
+      "stamps": true
+    },
+    {
+      "width": 320,
+      "overflow": false,
+      "paper": true,
+      "images": true,
+      "stamps": true
+    }
+  ],
+  "postagePerforations": true,
+  "keyboardFocus": true,
+  "coffeeFilter": true,
+  "reducedMotion": true,
+  "approvedLogo": "C",
+  "svgFaviconMatchesBrand": true,
+  "pngFaviconSizes": [
+    16,
+    32
+  ],
+  "pageErrors": 0,
+  "businessWrites": 0
+}

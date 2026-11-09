@@ -1,6 +1,18 @@
 # SchoolPerks 前端
 
-2026-11-09：已修复评论审批必填原因反馈、商家本人申请历史、缺资质门店发布入口，并支持资质补交审核。需配合后端V14发布，云端尚未更新。[测试与修复记录](TEST-REPORT-ADMIN-MERCHANT.md)。
+2026-11-09：已修复评论审批必填原因反馈、商家本人申请历史、缺资质门店发布入口，并支持资质补交审核。需配合后端V14发布。[测试与修复记录](TEST-REPORT-ADMIN-MERCHANT.md)。
+
+## 校园布告栏视觉素材
+
+原实验分支的视觉更新已合并到本主分支，保留本分支最新业务修复。使用经用户确认的内置图像工具制作纸张背景、咖啡票券、折纸地图、探店手记与校园票夹，已接入优惠发现首页。具体模型型号未公开，不标记为 image2.6。完整提示词、素材位置及验证记录见 [视觉素材说明](VISUAL-ASSETS.md)。
+
+<img src="frontend/src/assets/campus-exp/coffee-ticket.webp" alt="咖啡票券纸艺装饰" width="180" /> <img src="frontend/src/assets/campus-exp/ticket-wallet.webp" alt="校园票夹纸艺装饰" width="180" />
+
+已按用户确认采用 C「双票叠放」纯图形 Logo，统一用于网站标志与标签页图标，提供 SVG 和 16/32px PNG。类型检查、生产构建与 1440/390/320px 视觉检查通过；截图使用明确的示例数据，不是线上业务验收。
+
+[电脑效果](visual-preview/desktop.png) · [手机效果](visual-preview/mobile.png) · [三入口统一效果](visual-preview/entry-family.png)
+
+三个入口已按后续反馈改成同款邮票：浅色纸纹、四边齿孔和蓝色内框，保留咖啡／地图／手记纸艺图案与原有操作。
 
 Vue 3 + TypeScript + Vite 的校园周边优惠平台界面，包含用户、商家、管理员三端。登录后根据服务端账号类型进入对应端，菜单与资源访问同时受服务端权限校验。
 
