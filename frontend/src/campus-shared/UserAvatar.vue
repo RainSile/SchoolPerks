@@ -9,6 +9,6 @@ watch(() => props.imageUrl, () => { failed.value = false })
   <span v-else aria-hidden="true">{{ Array.from(nickname)[0] || '同' }}</span>
 </span></template>
 <style scoped>
-.user-avatar { display:inline-flex; flex:none; align-items:center; justify-content:center; overflow:hidden; border-radius:50%; background:#e9f0ff; color:#2454da; font-weight:700; border:1px solid #d4dff7; vertical-align:middle; }
-.user-avatar img { width:100%;height:100%;object-fit:cover; }
+.user-avatar { display:inline-flex; flex:none; align-items:center; justify-content:center; overflow:hidden; border-radius:50%; background:var(--campus-blue-soft); color:var(--campus-blue); font-weight:700; box-shadow:inset 0 0 0 1px #d4dff7; vertical-align:middle; isolation:isolate; mask-image:radial-gradient(white,white); }
+.user-avatar img { display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto;border-radius:inherit; }
 </style>

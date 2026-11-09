@@ -1,6 +1,7 @@
 <script setup lang="ts">
 withDefaults(defineProps<{ name: string; size?: number }>(), { size: 20 })
 const paths: Record<string, string> = {
+  plus: 'M12 5v14M5 12h14',
   ticket: 'M4 4h16v5a3 3 0 0 0 0 6v5H4v-5a3 3 0 0 0 0-6V4Zm10 1v2m0 3v2m0 3v3',
   home: 'm3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7',
   store: 'M3 10h18l-2-6H5l-2 6Zm2 0v11h14V10M9 21v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0',
