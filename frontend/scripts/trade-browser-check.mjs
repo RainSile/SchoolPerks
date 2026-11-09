@@ -20,7 +20,7 @@ try {
   page.on('pageerror', e => errors.push(e.message))
   const now = new Date().toISOString(), expires = new Date(Date.now() + 3600000).toISOString(), starts = new Date(Date.now() - 60000).toISOString()
   let accountType = 'MERCHANT', permission = 'OWNER', paymentAvailable = false, offer = null, order = null, refunds = [], socket, requestedKey = null, creations = 0
-  const store = { id: '11', name: '校园小馆', schoolId: '1', category: 'DINING', address: '东门', status: 'APPROVED', version: 0, description: '', businessHours: '', role: 'OWNER' }
+  const store = { id: '11', name: '校园小馆', schoolId: '1', category: 'DINING', address: '东门', status: 'APPROVED', version: 0, description: '', businessHours: '', role: 'OWNER', qualificationReady: true, pendingQualificationRequestId: null }
   const paged = (items, url) => ({ items, total: items.length, page: Number(url.searchParams.get('page') || 1), size: 20 })
   await context.route('**/api/v1/**', async route => {
     try {

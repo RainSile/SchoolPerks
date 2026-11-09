@@ -7,7 +7,7 @@ const stores = ref<MerchantWorkspace[]>([]), selected = ref(''), storePage = ref
 const offers = ref<api.Offer[]>([]), orders = ref<api.Order[]>([]), offerPage = ref(1), orderPage = ref(1), offerTotal = ref(0), orderTotal = ref(0)
 const busy = ref(false), message = ref(''), orderId = ref(''), code = ref('')
 const current = computed(() => stores.value.find(s => s.id === selected.value))
-const publisher = computed(() => current.value?.status === 'APPROVED' && ['OWNER', 'MANAGER'].includes(current.value.role))
+const publisher = computed(() => current.value?.status === 'APPROVED' && current.value.qualificationReady && ['OWNER', 'MANAGER'].includes(current.value.role))
 const form = ref({ title: '', description: '', kind: 'REGULAR', price: '', stock: 1, startsAt: '', endsAt: '', groupSize: 2, groupDurationSeconds: 600 })
 async function loadStores(target = 1) {
   busy.value = true; message.value = ''
@@ -49,7 +49,7 @@ watch(selected, () => { offers.value = []; orders.value = []; code.value = ''; o
 onMounted(() => loadStores())
 </script>
 <template><section>
-  <div class="section-heading"><h1>套餐与交易管理</h1><button class="secondary" :disabled="busy || !selected" @click="load">刷新工作台</button></div>
+  <div class="section-heading"><h1>套餐与交易管理</h1><p v-if="current && !current.qualificationReady" class="notice" role="status">本店资质尚未审核通过，暂不能创建活动。<RouterLink class="text-link" :to="{ path: '/merchant', query: { id: current.id }, hash: '#qualification' }">前往工作台补充资质 →</RouterLink></p><button class="secondary" :disabled="busy || !selected" @click="load">刷新工作台</button></div>
   <label for="tradeStore">选择门店</label><select id="tradeStore" v-model="selected" :disabled="busy"><option value="" disabled>请选择门店</option><option v-for="s in stores" :key="s.id" :value="s.id">{{ s.name }} · {{ s.role }}</option></select>
   <PaginationBar :page="storePage" :size="20" :total="storeTotal" :disabled="busy" @change="loadStores" /><p v-if="message" role="status">{{ message }}</p>
   <p v-if="current?.status === 'SUSPENDED'" class="notice">门店已暂停，当前只能查看交易记录。</p>

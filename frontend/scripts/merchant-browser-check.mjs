@@ -27,7 +27,7 @@ try {
   const now = new Date().toISOString(), expires = new Date(Date.now() + 300000).toISOString()
   const profile = { id: '1', accountType: 'USER', homePath: '/app', nickname: '入驻测试', maskedPhone: '139****0000', campusVerificationStatus: 'UNVERIFIED', schoolId: null, schoolName: null, permissions: [] }
   let available = false, application = null, uploads = [], reviews = [], signed = 0, campusReads = 0, saved = 0, memberChanges = 0
-  const store = { id: '11', name: '校园小馆', schoolId: '1', category: 'DINING', address: '学校东门', status: 'APPROVED', version: 0, description: '新鲜餐点', businessHours: '', role: 'OWNER' }
+  const store = { id: '11', name: '校园小馆', schoolId: '1', category: 'DINING', address: '学校东门', status: 'APPROVED', version: 0, description: '新鲜餐点', businessHours: '', role: 'OWNER', qualificationReady: true, pendingQualificationRequestId: null }
   let members = [{ userId: '1', nickname: '店主', role: 'OWNER', userStatus: 'ACTIVE', createdAt: now }]
   const campus = { id: 'campus-test', applicantId: '2', schoolId: '1', schoolName: '测试校园', status: 'PENDING', submittedAt: now }
   const paged = (items, url) => ({ items, total: items.length, page: Number(url.searchParams.get('page') || 1), size: Number(url.searchParams.get('size') || 20) })

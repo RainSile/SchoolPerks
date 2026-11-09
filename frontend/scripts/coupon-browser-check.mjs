@@ -29,7 +29,7 @@ try {
   context.on('page', tab => tab.on('pageerror', error => errors.push(error.message)))
   page.on('pageerror', error => errors.push(error.message))
   const now = new Date().toISOString(), expires = new Date(Date.now() + 86400000).toISOString()
-  const store = { id: '11', name: '校园小馆', schoolId: '1', category: 'DINING', address: '东门', status: 'APPROVED', version: 0, description: '', businessHours: '', role: 'OWNER' }
+  const store = { id: '11', name: '校园小馆', schoolId: '1', category: 'DINING', address: '东门', status: 'APPROVED', version: 0, description: '', businessHours: '', role: 'OWNER', qualificationReady: true, pendingQualificationRequestId: null }
   let coupon = null, review = null, claim = null, redemption = null, notices = [], walletSocket = null, authFrames = 0, claimCreates = 0, ticketRequests = 0, claimQueries = 0
   const code = `101.${'a'.repeat(43)}`
   const paged = (items, url) => ({ items, total: items.length, page: Number(url.searchParams.get('page') || 1), size: Number(url.searchParams.get('size') || 20) })

@@ -4,16 +4,17 @@ import type { DownloadTicket } from '../campus-file/api'
 export interface MerchantApplication {
   id: string; applicantId: string; schoolId: string; schoolName: string; name: string; category: string; address: string
   longitude: number | null; latitude: number | null; description: string; qualificationFileId: string
-  status: 'PENDING' | 'APPROVED' | 'REJECTED'; merchantId: string | null; reviewReason: string | null; submittedAt: string; reviewedAt: string | null
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'; merchantId: string | null; reviewReason: string | null; submittedAt: string; reviewedAt: string | null; purpose?: 'ONBOARDING' | 'QUALIFICATION'
 }
 export interface ApplicationInput { schoolId: string; name: string; category: string; address: string; description: string; qualificationFileId: string }
-export interface MerchantWorkspace { id: string; name: string; schoolId: string; category: string; address: string; status: string; version: number; description: string; businessHours: string; role: string }
+export interface MerchantWorkspace { id: string; name: string; schoolId: string; category: string; address: string; status: string; version: number; description: string; businessHours: string; role: string; qualificationReady: boolean; pendingQualificationRequestId: string | null }
 export interface Member { userId: string; nickname: string; role: string; userStatus: string; createdAt: string }
 export const categories = () => transport<string[]>('/merchant-categories')
 export const submitApplication = (input: ApplicationInput) => request<MerchantApplication>('/merchant-applications', { method: 'POST', body: JSON.stringify(input) })
 export const myApplications = (page = 1) => request<PageResponse<MerchantApplication>>(`/users/me/merchant-applications?page=${page}&size=20`)
 export const myMerchants = (page = 1) => request<PageResponse<MerchantWorkspace>>(`/users/me/merchants?page=${page}&size=20`)
 export const getWorkspace = (id: string) => request<MerchantWorkspace>(`/merchants/${encodeURIComponent(id)}/workspace`)
+export const submitQualification = (id: string, version: number, qualificationFileId: string) => request<MerchantApplication>(`/merchants/${encodeURIComponent(id)}/qualification-requests`, { method: 'POST', body: JSON.stringify({ version, qualificationFileId }) })
 export const updateMerchant = (id: string, version: number, description: string, businessHours: string) => request<MerchantWorkspace>(`/merchants/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ version, description, businessHours }) })
 export const listMembers = (id: string) => request<PageResponse<Member>>(`/merchants/${encodeURIComponent(id)}/members?page=1&size=100`)
 export const addMember = (id: string, userId: string, role: string) => request<Member>(`/merchants/${encodeURIComponent(id)}/members`, { method: 'POST', body: JSON.stringify({ userId, role }) })

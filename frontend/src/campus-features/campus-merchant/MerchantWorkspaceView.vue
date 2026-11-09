@@ -4,6 +4,19 @@ import { useRoute } from 'vue-router'
 import { myMerchants, getWorkspace, updateMerchant, listMembers, addMember, removeMember, qualificationDownload, statusLabels, type MerchantWorkspace, type Member } from './workflow-api'
 import type { DownloadTicket } from '../campus-file/api'
 import PaginationBar from '../../campus-shared/PaginationBar.vue'
+import QualificationUpload from '../campus-file/QualificationUpload.vue'
+import { submitQualification } from './workflow-api'
+const qualificationFile = ref('')
+async function supplement() {
+  if (!store.value || !qualificationFile.value) return
+  busy.value = true; message.value = ''
+  try {
+    await submitQualification(store.value.id, store.value.version, qualificationFile.value)
+    await loadStore(store.value.id)
+    qualificationFile.value = ''; message.value = '补充资质已提交，请等待管理员审核；通过后方可管理优惠与套餐。'
+  } catch (error) { message.value = error instanceof Error ? error.message : '资质提交失败' }
+  finally { busy.value = false }
+}
 const route = useRoute(), stores = ref<MerchantWorkspace[]>([]), selected = ref(''), store = ref<MerchantWorkspace | null>(null), members = ref<Member[]>([])
 const description = ref(''), hours = ref(''), userId = ref(''), role = ref('CASHIER'), busy = ref(false), message = ref(''), download = ref<DownloadTicket | null>(null)
 const page = ref(1), total = ref(0), owner = computed(() => store.value?.role === 'OWNER'), editable = computed(() => owner.value && store.value?.status === 'APPROVED')
@@ -40,8 +53,9 @@ async function signDownload() { if (!store.value) return; busy.value = true; mes
     <section class="merchant-details"><div class="section-heading"><h2>{{ store.name }}</h2><button class="secondary" :disabled="busy" @click="loadStore(store.id)">刷新门店</button></div><p class="muted">{{ store.address }} · <span class="badge">{{ statusLabels[store.status] ?? store.status }}</span> · {{ { OWNER: '店主', MANAGER: '门店经理', CASHIER: '核销店员' }[store.role] ?? store.role }}</p>
       <p v-if="store.status === 'SUSPENDED'" class="notice">门店已暂停，当前仅可查看资料。</p>
       <form @submit.prevent="save"><label for="storeDescription">门店介绍</label><textarea id="storeDescription" v-model="description" maxlength="1000" rows="3" :disabled="busy || !editable" /><label for="businessHours">营业时间</label><input id="businessHours" v-model="hours" maxlength="255" :disabled="busy || !editable" /><button v-if="owner" type="submit" :disabled="busy || !editable">保存门店资料</button></form>
-      <section v-if="owner" class="merchant-qualification"><h2>本店私有资质</h2><p class="muted">资料仅通过短时链接访问，请妥善保管。</p><button class="secondary" :disabled="busy" @click="signDownload">获取资质下载凭据</button><p v-if="download"><a class="text-link" :href="download.url" target="_blank" rel="noopener noreferrer">打开短时资质链接</a> · 有效至 {{ new Date(download.expiresAt).toLocaleTimeString() }}</p></section>
+      <section v-if="owner && store.qualificationReady" class="merchant-qualification"><h2>本店私有资质</h2><p class="muted">资料仅通过短时链接访问，请妥善保管。</p><button class="secondary" :disabled="busy" @click="signDownload">获取资质下载凭据</button><p v-if="download"><a class="text-link" :href="download.url" target="_blank" rel="noopener noreferrer">打开短时资质链接</a> · 有效至 {{ new Date(download.expiresAt).toLocaleTimeString() }}</p></section>
     </section>
+    <section v-if="owner && !store.qualificationReady" id="qualification" class="merchant-qualification"><h2>补充门店资质</h2><p class="notice">门店尚未完成资质审核，暂不能创建优惠或套餐。请上传本人资质，提交后由管理员审核。</p><p v-if="store.pendingQualificationRequestId" role="status">资质补充申请正在审核。<RouterLink class="text-link" to="/merchant/applications">查看申请进度 →</RouterLink></p><template v-else><QualificationUpload v-model="qualificationFile" /><button :disabled="busy || !qualificationFile" @click="supplement">提交资质审核</button></template></section>
     <section v-if="owner" class="merchant-team"><h2>店员管理</h2><p class="muted">让店员在个人资料中查看用户编号。添加店员不会授予平台管理权限。</p>
       <form class="inline-form" @submit.prevent="add"><div><label for="memberUserId">店员用户编号</label><input id="memberUserId" v-model.trim="userId" required pattern="[1-9][0-9]{0,17}" maxlength="18" :disabled="busy || !editable" /></div><div><label for="memberRole">店员角色</label><select id="memberRole" v-model="role" :disabled="busy || !editable"><option value="CASHIER">核销店员</option><option value="MANAGER">门店经理</option></select></div><button type="submit" :disabled="busy || !editable">添加店员</button></form>
       <div class="table-scroll"><table><thead><tr><th>用户编号</th><th>昵称</th><th>角色</th><th>操作</th></tr></thead><tbody><tr v-for="member in members" :key="member.userId"><td>{{ member.userId }}</td><td>{{ member.nickname }}</td><td>{{ member.role }}</td><td><button v-if="member.role !== 'OWNER'" class="secondary" :disabled="busy || !editable" @click="remove(member)">移除店员</button><span v-else>店主不可移除</span></td></tr></tbody></table></div>

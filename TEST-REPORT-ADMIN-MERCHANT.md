@@ -1,0 +1,55 @@
+# 管理端与商家端前端复测报告
+
+## 2026-11-09 修复验收
+
+当前结论：**本轮三项缺陷已修复并通过本地回归**。作业分支为 campus-frontend 与 campus-backend，未修改实验分支，尚未重新部署云端。不宣称全部业务分支或外部供应商已重新验收。
+
+| 缺陷 | 修复与验证 |
+| --- | --- |
+| AM-UI-001 评论审核点击无明显反馈 | 保留必填原因；缺失时提示并滚动聚焦输入框，服务端错误定位反馈。1440×600、390×844 的夹具及真实前后端均通过：空原因不发送 PATCH；补填后仅一次提交，数据库为 APPROVED，学生端刷新后公开可见。 |
+| AM-UI-002 商家无法查看本人申请历史 | 历史页改为登录共享路由；后端两个历史 GET 允许已登录账号，仍按申请人隔离，其他人详情 404；新入驻 POST 仍按原 USER 准入。实际工作台链接与升级后的账号历史查询通过。 |
+| AM-DATA-001 旧门店缺资质但前端开放建券 | 工作台返回 qualificationReady 与 pendingQualificationRequestId；缺资质时隐藏优惠/套餐创建表单并引导补交。本人 READY 资质提交后，由管理员审核绑定原门店；不新增门店、不绕过资格检查、不自动解除暂停。补交至真实优惠发布/领取/核销全链通过。 |
+
+### 本次验证
+
+- 后端最终一次执行 119 项，0 失败、0 错误、0 跳过。其中 108 项 MySQL/MockMvc、10 项单元或基础合同、1 项实际浏览器联调；该浏览器用例包含 14 段旅程，不能再加作 14 个 JUnit 用例。
+- 明细：商家18、优惠18、社区19、交易21、RBAC6、看板12、业务读取及权限矩阵14、权限单元3、基础合同7、浏览器联调1。
+- 前端 10 组 F 回归：merchant、coupon、trade、community、analytics、rbac-business、auth、password-map、admin-comment-feedback、merchant-history；全部通过。TypeScript 检查与生产构建通过。
+- E 联调：真实密码登录及分端；资质补交/管理员审核；商家建券/送审、管理员审批、发布、学生领取及商家核销并持久化；跨端拒绝；套餐下单取消；帖子审批/点赞/XSS；两尺寸评论审批；附近查询及两端看板。
+- 新资质负例：非店主的经理/收银员 403、跨店及他人文件 404、未封存文件 409、旧版本 409、重复申请/审批 409；旧申请驳回后可重提，暂停状态保留。审计故障时资质绑定、版本、审核状态/记录均回滚。
+- 本机迁移 V14 首次执行只新增空关系表及 Flyway 记录；此后最终回归前后 57 张基表行数及逐行摘要差异为 0。未清库、未重置自增值。
+
+### 接口与发布注意
+
+新增 POST /api/v1/merchants/{id}/qualification-requests，body 为 version、qualificationFileId；成功 201，Location 指向现有 merchant-applications 资源，带 OpenAPI/Knife4j 注解。实际店主提交；具有既有跨业务权限的管理员仍需关联实际店主的 READY 文件，不能用管理员文件代替店主资质。审批复用管理员 merchant-applications/{id}/reviews。申请增加 purpose=ONBOARDING 或 QUALIFICATION；补交申请的 merchantId 指向既有门店。
+
+V14__merchant_qualification_supplements.sql 为增量迁移，保留原入驻表的一店一原始申请唯一约束，补交关系独立存储。V1–V14 不可修改，后续从 V15 起。部署时先备份目标库，交由原 Flyway 执行 V14，再发布配套前端；无需新增环境变量或依赖。
+
+这些测试使用随机本机端口与专属夹具。存储和支付端口在本次 D/E 中显式使用替身；真实 MinIO、支付宝、短信、AI 不属于本次重新验收，发送短信 0 条。原始运行日志、凭据、令牌、真实附件不提交 Git。旧演示店不会自动伪造资质，实际使用时仍须店主上传真实文件并由管理员审核。
+
+### 复验入口
+
+后端 scripts/test-business-backend.ps1 支持 -TestSelection。选取本报告列出的测试类，BusinessReadChainsMySqlTest 使用 #business*，BusinessLiveJourneyMySqlTest 使用 #businessRealBrowserCouponJourney，需显式本机测试库授权配置。前后端为分离检出时，CAMPUS_FRONTEND_PROJECT_ROOT 指向含 frontend/ 的配对前端仓库；联调还需要 Node、Playwright、Chrome，可用 CAMPUS_PLAYWRIGHT_MODULE 与 CAMPUS_BROWSER_EXECUTABLE 配置。独立前端回归直接 node frontend/scripts/<名称>-browser-check.mjs；不需要真实账号。
+
+## 修复前复测记录（历史）
+
+日期：2026-11-09。分支campus-frontend，基线3563b36。结论：**未通过**。只新增测试和报告，未修改业务页面。
+
+| 本次检查 | 结果 | 边界 |
+| --- | --- | --- |
+| merchant/coupon/trade/community/analytics/rbac-business/auth/password-map | 8/8组通过 | F：HTTP/WS夹具，不是真实后端闭环 |
+| 新增评论反馈回归 | 两种尺寸错误反馈断言失败；两种尺寸补填后提交断言通过 | 1440×600、390×844 |
+| 新增申请历史回归 | 失败，实际回到/merchant | 实际点击工作台链接 |
+| 线上四角色页面读取 | 23次，22通过、1历史页失败 | E-read，不证明所有写按钮可用 |
+| 四角色手机页面 | 4次无横向溢出 | 不等于全部移动端动作验收 |
+| 线上评论审批、刷新、隐藏、公开可见性、旧版本、非管理员拒绝 | 有效原因链通过，空原因反馈缺陷确认 | E：真实浏览器、服务与数据库 |
+| 线上商家建券 | 409 QUALIFICATION_REQUIRED，后续链受阻 | 不用Mock成功代替 |
+| 真实MinIO私有文件上传/确认 | 一次通过 | X，不等于入驻/发布通过 |
+
+## 新增回归与缺陷
+
+frontend/scripts/admin-comment-feedback-browser-check.mjs 对空原因反馈可发现性作失败断言，并同时验证有效输入仍可提交。frontend/scripts/merchant-history-browser-check.mjs 点击实际工作台链接，当前因AM-UI-002失败。与既有脚本一样，需要Playwright（或CAMPUS_PLAYWRIGHT_MODULE指向安装位置），可通过CAMPUS_BROWSER_EXECUTABLE配置浏览器。使用node执行；两脚本全部采用本地HTTP夹具，不含凭据、不访问真实业务。
+
+这两个脚本目前应退出1，不可跳过后宣称全绿。八组旧脚本的填好表单路径并未证明空输入、长队列及角色改变后的历史入口能用。完整缺陷为AM-UI-001、AM-UI-002、AM-DATA-001，见工作区docs/BUSINESS-TEST-BUGS.md。
+
+真实商家完整发布/核销链尚未通过。真实支付/退款、短信、AI、修改既有用户权限、批量处理真实评论均未执行。专属测试帖子/评论已由本人接口软删除，审计留存；私有小型上传文件保留在测试账号下。已捕获的API临时会话退出、浏览器上下文关闭，不声称所有历史浏览器会话均在服务端删除。云端存在上述测试写入，不能用本机摘要一致宣称云端零变化。

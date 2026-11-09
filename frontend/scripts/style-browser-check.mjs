@@ -28,7 +28,7 @@ const coupons = [
 }))
 const permissions = ['merchant:review','campus:review','coupon:review','community:moderate','search:manage','audit:read','rbac:manage','analytics:read']
 const profile = portal => ({ id: portal === 'ADMIN' ? '3' : portal === 'MERCHANT' ? '2' : '1', accountType: portal, homePath: { USER:'/app', MERCHANT:'/merchant', ADMIN:'/admin' }[portal], nickname: portal === 'ADMIN' ? '校园运营' : portal === 'MERCHANT' ? '东门小馆' : '林同学', maskedPhone:'138****0000', schoolId:'1', schoolName:'知行大学', campusVerificationStatus:'APPROVED', permissions: portal === 'ADMIN' ? permissions : portal === 'MERCHANT' ? ['merchant:read','merchant:analytics:read'] : [] })
-const store = { id:'201', name:'东门小馆', schoolId:'1', category:'DINING', address:'校园东门生活街', status:'APPROVED', version:0, description:'一碗热面，一顿踏实的午饭。', businessHours:'10:00—21:00', role:'OWNER' }
+const store = { id:'201', name:'东门小馆', schoolId:'1', category:'DINING', address:'校园东门生活街', status:'APPROVED', version:0, description:'一碗热面，一顿踏实的午饭。', businessHours:'10:00—21:00', role:'OWNER',qualificationReady:true,pendingQualificationRequestId:null }
 const paged = items => ({ items, total:items.length, page:1, size:20 })
 async function fixture(request, portal) {
   const url = new URL(request.url()), p = url.pathname.replace('/api/v1','')

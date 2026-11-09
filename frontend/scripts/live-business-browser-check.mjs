@@ -106,6 +106,27 @@ try {
     console.log('PASS: real map SDK auto-load, canvas, provider proxy and actual nearby business query.')
   } else {
   const owner = await login('MERCHANT', '/merchant')
+  if (process.env.CAMPUS_LIVE_QUALIFICATION_FILE_ID) {
+    await owner.goto(origin + '/merchant/coupons')
+    await owner.getByText('本店资质尚未审核通过，暂不能创建活动。').waitFor()
+    assert.equal(await owner.getByRole('heading', { name: '创建优惠草稿' }).count(), 0)
+    await owner.getByRole('link', { name: '前往工作台补充资质 →' }).click()
+    await owner.getByLabel('使用本人已核验的资质').selectOption(process.env.CAMPUS_LIVE_QUALIFICATION_FILE_ID)
+    await owner.getByRole('button', { name: '提交资质审核', exact: true }).click()
+    await owner.getByText('资质补充申请正在审核。').waitFor()
+    const reviewer = await login('ADMIN', '/admin')
+    await reviewer.goto(origin + '/admin/merchant-applications')
+    const qualification = reviewer.locator('.review-record').filter({ hasText: 'business-test-store' })
+    await qualification.getByRole('button', { name: '查看申请', exact: true }).click()
+    await reviewer.getByText('本次为既有门店补充资质审核；通过后关联资质，不创建新门店，也不恢复已暂停的门店。').waitFor()
+    await reviewer.getByLabel('处理原因', { exact: true }).fill('隔离联调：补充资质审核通过')
+    await reviewer.getByRole('button', { name: '通过资质审核', exact: true }).click()
+    await reviewer.getByText('审核决定已保存。', { exact: true }).waitFor()
+    const workspace = await api('MERCHANT', 'GET', `/merchants/${merchant}/workspace`)
+    assert.equal(workspace.qualificationReady, true)
+    assert.equal(workspace.id, merchant)
+    steps.push('Real legacy qualification repair: blocked creation -> owner supplement -> administrator approval -> same store ready')
+  }
   await owner.goto(origin + '/merchant/coupons')
   await owner.getByRole('heading', { name: '创建优惠草稿' }).waitFor()
   await owner.getByLabel('优惠标题').fill(title)
@@ -180,6 +201,35 @@ try {
   await user.getByRole('heading', { name: '联调校园探店', exact: true }).waitFor()
   assert.equal(await user.evaluate(() => window.__liveBusinessXss), undefined)
   steps.push('Real HTTP + post UI: draft -> approval -> public detail -> like; authored script text never executes')
+
+  for (const [width, height] of [[1440, 600], [390, 844]]) {
+    const body = `联调评论-${width}：` + '验证长评论滚动后的处理反馈。'.repeat(100)
+    const comment = await api('USER', 'POST', `/posts/${post.id}/comments`, { body }, 201)
+    await admin.setViewportSize({ width, height })
+    await admin.goto(origin + '/admin/community')
+    await admin.getByLabel('处理队列').selectOption('comments')
+    const row = admin.locator('article.workspace-card').filter({ hasText: body })
+    await row.waitFor()
+    let writes = 0
+    const observe = request => {
+      if (request.method() === 'PATCH' && new URL(request.url()).pathname.endsWith(`/admin/post-comments/${comment.id}`)) writes++
+    }
+    admin.on('request', observe)
+    try {
+      await row.getByRole('button', { name: '通过评论', exact: true }).click()
+      await admin.waitForFunction(() => document.activeElement?.id === 'communityModerationReason')
+      await admin.getByRole('status').filter({ hasText: '请先填写处理原因。' }).waitFor()
+      assert.equal(writes, 0, 'Missing reason must focus its field without writing a decision')
+      await admin.getByLabel('处理原因 / 结论').fill('联调审核：反馈可发现，批准后持久化')
+      await row.getByRole('button', { name: '通过评论', exact: true }).click()
+      await admin.getByRole('status').filter({ hasText: '评论处理已保存。' }).waitFor()
+      assert.equal(writes, 1)
+      assert.equal((await api('USER', 'GET', `/post-comments/${comment.id}`)).status, 'APPROVED')
+      await user.reload()
+      await user.getByText(body, { exact: true }).waitFor()
+      steps.push(`Real comment moderation ${width}x${height}: missing reason focuses field/no write -> UI approval -> persisted and publicly visible`)
+    } finally { admin.off('request', observe) }
+  }
 
   await api('MERCHANT', 'PUT', `/merchants/${merchant}/location`, { longitude: '116.4', latitude: '39.9', coordinateSystem: 'WGS84', version: 0 })
   const nearby = await api('USER', 'GET', '/nearby-merchants?longitude=116.4&latitude=39.9&coordinateSystem=WGS84&radiusMeters=1000&size=20')
