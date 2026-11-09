@@ -24,6 +24,10 @@ public class DisabledMerchantWorkflow
     throw unavailable();
   }
 
+  public Application submitQualification(String id, SubmitQualificationRequest request) {
+    throw unavailable();
+  }
+
   public PageResponse<Application> applications(PageQuery q) {
     throw unavailable();
   }

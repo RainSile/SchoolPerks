@@ -896,6 +896,10 @@ class MerchantStageTwoMySqlTest {
             + "))",
         values);
     jdbc.update(
+        "DELETE FROM campus_merchant_qualification_submission WHERE application_id IN (SELECT id FROM"
+            + " campus_merchant_application WHERE applicant_id IN (" + ids + "))",
+        values);
+    jdbc.update(
         "DELETE FROM campus_merchant_application WHERE applicant_id IN (" + ids + ")", values);
     jdbc.update(
         "DELETE FROM campus_merchant_status_change WHERE merchant_id IN (SELECT id FROM"
@@ -931,6 +935,132 @@ class MerchantStageTwoMySqlTest {
           permission);
     jdbc.update("DELETE FROM campus_user WHERE id IN (" + ids + ")", values);
     jdbc.update("DELETE FROM campus_school WHERE id=?", school);
+  }
+
+  @Test
+  void approvedLegacyStoreWithoutQualificationCannotCreateCouponOrChangeStock() throws Exception {
+    String merchant = approve(apply(ownerA));
+    jdbc.update("UPDATE campus_merchant SET qualification_file_id=NULL WHERE id=?", merchant);
+    long before =
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM campus_coupon WHERE merchant_id=?", Long.class, merchant);
+
+    get("/merchants/" + merchant + "/workspace", ownerA)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("APPROVED"));
+    post(
+            "/merchants/" + merchant + "/coupons",
+            ownerA,
+            Map.of(
+                "title", "legacy qualification gate regression",
+                "couponType", "AMOUNT_OFF",
+                "rules", Map.of("threshold", 10, "amountOff", 1),
+                "totalStock", 2,
+                "validFrom", clock.instant().minusSeconds(60).toString(),
+                "validUntil", clock.instant().plusSeconds(3600).toString(),
+                "campusOnly", false,
+                "description", "isolated transactional test"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("QUALIFICATION_REQUIRED"));
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT COUNT(*) FROM campus_coupon WHERE merchant_id=?", Long.class, merchant))
+        .isEqualTo(before);
+  }
+
+  @Test
+  void legacyOwnerCanSupplementOnlyOwnReadyFileAndReviewRestoresPublisherWithoutNewStore()
+      throws Exception {
+    String merchant = approve(apply(ownerA));
+    jdbc.update("UPDATE campus_merchant SET qualification_file_id=NULL WHERE id=?", merchant);
+    get("/users/me/merchant-applications", ownerA).andExpect(status().isOk());
+    get("/merchants/" + merchant + "/workspace", ownerA)
+        .andExpect(jsonPath("$.qualificationReady").value(false));
+    int version = jdbc.queryForObject("SELECT version FROM campus_merchant WHERE id=?", Integer.class, merchant);
+    post("/merchants/" + merchant + "/members", ownerA,
+        Map.of("userId", Long.toString(staff), "role", "MANAGER")).andExpect(status().isCreated());
+    for (String memberRole : List.of("MANAGER", "CASHIER")) {
+      jdbc.update("UPDATE campus_merchant_member SET member_role=? WHERE merchant_id=? AND user_id=?", memberRole, merchant, staff);
+      post("/merchants/" + merchant + "/qualification-requests", staff,
+          Map.of("version", version, "qualificationFileId", "no-file")).andExpect(status().isForbidden());
+    }
+    String pendingFile = upload(ownerA).get("id").asText();
+    post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version, "qualificationFileId", pendingFile)).andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("FILE_NOT_READY"));
+    complete(pendingFile, ownerA).andExpect(status().isOk());
+    String file = ready(ownerA);
+    post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version+1, "qualificationFileId", file)).andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("VERSION_CONFLICT"));
+    approve(apply(ownerB));
+    String foreign = ready(ownerB);
+    post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version, "qualificationFileId", foreign)).andExpect(status().isNotFound());
+    post("/merchants/" + merchant + "/qualification-requests", ownerB,
+        Map.of("version", version, "qualificationFileId", foreign)).andExpect(status().isNotFound());
+    var request = body(post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version, "qualificationFileId", file)).andExpect(status().isCreated())
+        .andExpect(jsonPath("$.purpose").value("QUALIFICATION")));
+    String id = request.get("id").asText();
+    post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version, "qualificationFileId", file)).andExpect(status().isConflict());
+    get("/merchant-applications/" + id, ownerB).andExpect(status().isNotFound());
+    get("/merchants/" + merchant + "/workspace", ownerA)
+        .andExpect(jsonPath("$.qualificationReady").value(false))
+        .andExpect(jsonPath("$.pendingQualificationRequestId").value(id));
+    long stores = jdbc.queryForObject("SELECT COUNT(*) FROM campus_merchant", Long.class);
+    assertThat(approve(id)).isEqualTo(merchant);
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM campus_merchant", Long.class)).isEqualTo(stores);
+    get("/merchants/" + merchant + "/workspace", ownerA)
+        .andExpect(jsonPath("$.qualificationReady").value(true))
+        .andExpect(jsonPath("$.pendingQualificationRequestId").doesNotExist());
+    post("/admin/merchant-applications/" + id + "/reviews", reviewer,
+        Map.of("decision", "APPROVED", "reason", "repeat")).andExpect(status().isConflict());
+    assertThat(jdbc.queryForObject("SELECT qualification_file_id FROM campus_merchant WHERE id=?", String.class, merchant)).isEqualTo(file);
+  }
+
+  @Test
+  void supplementaryReviewRejectsStaleStoreAndRejectionAllowsResubmission() throws Exception {
+    String merchant = approve(apply(ownerA));
+    jdbc.update("UPDATE campus_merchant SET qualification_file_id=NULL WHERE id=?", merchant);
+    int version = jdbc.queryForObject("SELECT version FROM campus_merchant WHERE id=?", Integer.class, merchant);
+    String file = ready(ownerA);
+    String id = body(post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version, "qualificationFileId", file)).andExpect(status().isCreated())).get("id").asText();
+    jdbc.update("UPDATE campus_merchant SET version=version+1,status='SUSPENDED' WHERE id=?", merchant);
+    post("/admin/merchant-applications/" + id + "/reviews", reviewer,
+        Map.of("decision", "APPROVED", "reason", "stale")).andExpect(status().isConflict());
+    post("/admin/merchant-applications/" + id + "/reviews", reviewer,
+        Map.of("decision", "REJECTED", "reason", "resubmit")).andExpect(status().isCreated());
+    String next = body(post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version+1, "qualificationFileId", file)).andExpect(status().isCreated())).get("id").asText();
+    assertThat(approve(next)).isEqualTo(merchant);
+    get("/merchants/" + merchant + "/workspace", ownerA)
+        .andExpect(jsonPath("$.status").value("SUSPENDED"))
+        .andExpect(jsonPath("$.qualificationReady").value(true));
+  }
+
+  @Test
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  void supplementaryApprovalAuditFailureRollsBackBindingAndDecision() throws Exception {
+    String merchant = approve(apply(ownerA));
+    jdbc.update("UPDATE campus_merchant SET qualification_file_id=NULL WHERE id=?", merchant);
+    int version = jdbc.queryForObject("SELECT version FROM campus_merchant WHERE id=?", Integer.class, merchant);
+    String id = body(post("/merchants/" + merchant + "/qualification-requests", ownerA,
+        Map.of("version", version, "qualificationFileId", ready(ownerA)))
+        .andExpect(status().isCreated())).get("id").asText();
+    AuditPort target = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(audit);
+    doThrow(new IllegalStateException("test-supplement-audit-failure"))
+        .when(target).record(anyString(), eq("MERCHANT_APPLICATION_REVIEWED"), anyString(), eq(id), anyMap());
+    assertThatThrownBy(() -> post("/admin/merchant-applications/" + id + "/reviews", reviewer,
+        Map.of("decision", "APPROVED", "reason", "must remain atomic")))
+        .isInstanceOf(jakarta.servlet.ServletException.class);
+    assertThat(jdbc.queryForObject("SELECT qualification_file_id FROM campus_merchant WHERE id=?", String.class, merchant)).isNull();
+    assertThat(jdbc.queryForObject("SELECT version FROM campus_merchant WHERE id=?", Integer.class, merchant)).isEqualTo(version);
+    assertThat(jdbc.queryForObject("SELECT status FROM campus_merchant_application WHERE id=?", String.class, id)).isEqualTo("PENDING");
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM campus_merchant_review WHERE application_id=?", Integer.class, id)).isZero();
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM campus_audit_event WHERE resource_id=? AND action='MERCHANT_APPLICATION_REVIEWED'", Integer.class, id)).isZero();
   }
 
   @TestConfiguration

@@ -45,7 +45,7 @@ public class MerchantWorkflowController {
   }
 
   @GetMapping("/users/me/merchant-applications")
-  @Operation(summary = "分页查询本人入驻申请")
+  @Operation(summary = "分页查询本人入驻与资质补充申请，账号升级为商家后仍可查看")
   @SecurityRequirement(name = "bearerAuth")
   public PageResponse<MerchantReviewPort.Application> applications(
       @Valid @ParameterObject PageQuery q) {
@@ -57,6 +57,15 @@ public class MerchantWorkflowController {
   @SecurityRequirement(name = "bearerAuth")
   public MerchantReviewPort.Application application(@PathVariable String id) {
     return service.application(id);
+  }
+
+  @PostMapping("/merchants/{id}/qualification-requests")
+  @Operation(summary = "店主提交缺失资质的补充审核申请", description = "仅本人已有门店；资质必须本人上传并封存。管理员审核通过前不恢复优惠发布能力。")
+  @SecurityRequirement(name = "bearerAuth")
+  public ResponseEntity<MerchantReviewPort.Application> supplement(
+      @PathVariable String id, @Valid @RequestBody SubmitQualificationRequest request) {
+    var result = service.submitQualification(id, request);
+    return ResponseEntity.created(URI.create("/api/v1/merchant-applications/" + result.id())).body(result);
   }
 
   @GetMapping("/users/me/merchants")

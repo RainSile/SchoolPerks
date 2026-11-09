@@ -9,6 +9,20 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface MerchantWorkflowMapper {
+  @Select("SELECT application_id,merchant_id,merchant_version FROM campus_merchant_qualification_submission WHERE application_id=#{id}")
+  com.campus.perks.merchant.entity.QualificationSubmission qualificationSubmission(String id);
+
+  @Select("SELECT q.application_id FROM campus_merchant_qualification_submission q JOIN campus_merchant_application a ON a.id=q.application_id WHERE q.merchant_id=#{merchant} AND a.status='PENDING' LIMIT 1")
+  String pendingQualification(long merchant);
+
+  @Insert("INSERT INTO campus_merchant_qualification_submission(application_id,merchant_id,merchant_version) VALUES(#{application},#{merchant},#{version})")
+  void insertQualificationSubmission(@Param("application") String application, @Param("merchant") long merchant, @Param("version") int version);
+
+  @Insert("INSERT INTO campus_merchant_application(id,applicant_id,school_id,name,category,address,longitude,latitude,description,qualification_file_id,status,submitted_at) VALUES(#{id},#{applicantId},#{schoolId},#{name},#{category},#{address},#{longitude},#{latitude},#{description},#{qualificationFileId},'PENDING',#{submittedAt})")
+  void insertQualification(com.campus.perks.merchant.entity.MerchantApplicationRow row);
+
+  @Update("UPDATE campus_merchant SET qualification_file_id=#{file},version=version+1 WHERE id=#{merchant} AND version=#{version} AND qualification_file_id IS NULL")
+  int bindQualification(@Param("merchant") long merchant, @Param("version") int version, @Param("file") String file);
   @Select(
       "SELECT CAST(mm.user_id AS CHAR) AS user_id,u.nickname,mm.member_role AS role,u.status AS"
           + " user_status,mm.created_at FROM campus_merchant_member mm JOIN campus_user u ON"

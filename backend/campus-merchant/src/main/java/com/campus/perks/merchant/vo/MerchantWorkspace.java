@@ -13,4 +13,6 @@ public record MerchantWorkspace(
     int version,
     String description,
     String businessHours,
-    String role) {}
+    String role,
+    boolean qualificationReady,
+    String pendingQualificationRequestId) {}

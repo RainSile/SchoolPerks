@@ -104,11 +104,15 @@ class BusinessLiveJourneyMySqlTest extends BusinessReadChainsMySqlTest {
                 List.of(school),
                 "campus_role",
                 List.of(role)));
+    if (!mapOnly) {
+      db.update("UPDATE campus_merchant SET qualification_file_id=NULL WHERE id=?", store);
+    }
     TestTransaction.flagForCommit();
     TestTransaction.end();
     committed = true;
     Path evidence = Path.of(System.getenv("CAMPUS_BUSINESS_EVIDENCE_DIR"));
-    Path root = evidence;
+    Path root = System.getenv("CAMPUS_FRONTEND_PROJECT_ROOT") == null
+        ? evidence : Path.of(System.getenv("CAMPUS_FRONTEND_PROJECT_ROOT"));
     while (root != null && !Files.exists(root.resolve("frontend/package.json")))
       root = root.getParent();
     if (root == null) throw new IllegalStateException("Project root not found");
@@ -129,6 +133,7 @@ class BusinessLiveJourneyMySqlTest extends BusinessReadChainsMySqlTest {
     environment.put("CAMPUS_LIVE_ADMIN_PHONE", phones.get(2));
     environment.put("CAMPUS_LIVE_MERCHANT_ID", "" + store);
     environment.put("CAMPUS_LIVE_SCHOOL_ID", "" + school);
+    environment.put("CAMPUS_LIVE_QUALIFICATION_FILE_ID", file);
     environment.putIfAbsent(
         "CAMPUS_PLAYWRIGHT_MODULE",
         "C:\\Users\\r"

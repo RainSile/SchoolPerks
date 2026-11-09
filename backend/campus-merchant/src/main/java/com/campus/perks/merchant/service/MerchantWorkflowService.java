@@ -18,6 +18,8 @@ public interface MerchantWorkflowService {
 
   MerchantWorkspace update(String id, UpdateMerchantRequest request);
 
+  MerchantReviewPort.Application submitQualification(String id, SubmitQualificationRequest request);
+
   PageResponse<MemberView> members(String id, PageQuery query);
 
   MemberView member(String id, String userId);

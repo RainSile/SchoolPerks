@@ -42,7 +42,8 @@ public interface MerchantReviewPort {
       String merchantId,
       String reviewReason,
       Instant submittedAt,
-      Instant reviewedAt) {}
+      Instant reviewedAt,
+      String purpose) {}
 
   record StatusChange(
       String id,

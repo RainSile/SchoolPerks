@@ -145,6 +145,11 @@ public class SecurityConfiguration {
                       HttpMethod.GET, "/api/v1/map-capabilities", "/api/v1/maps/_AMapService/**")
                   .permitAll();
               auth.requestMatchers("/api/v1/admin/**").hasAuthority("PORTAL_ADMIN");
+              // Read-only history remains scoped to the applicant in the service,
+              // including after approval has promoted that applicant to MERCHANT.
+              auth.requestMatchers(HttpMethod.GET,
+                      "/api/v1/users/me/merchant-applications", "/api/v1/merchant-applications/*")
+                  .authenticated();
               auth.requestMatchers(
                       "/api/v1/merchants/*/**",
                       "/api/v1/users/me/merchants",

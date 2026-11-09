@@ -98,10 +98,51 @@ public class MerchantWorkflowServiceImpl
         m.getVersion(),
         m.getDescription(),
         m.getBusinessHours(),
-        role);
+        role,
+        qualificationReady(m),
+        workflow.pendingQualification(m.getId()));
+  }
+
+  private boolean qualificationReady(MerchantEntity merchant) {
+    if (merchant.getQualificationFileId() == null) return false;
+    try {
+      files.requireReadyOwned(merchant.getQualificationFileId(), merchant.getOwnerId().toString(), PURPOSE);
+      return true;
+    } catch (ApplicationException unavailable) {
+      return false;
+    }
+  }
+
+  @Transactional
+  public Application submitQualification(String key, SubmitQualificationRequest request) {
+    accounts.lockActiveUser(CurrentActor.id());
+    var merchant = store(key, true);
+    owner(merchant);
+    if (!Objects.equals(merchant.getVersion(), request.version()))
+      throw error(HttpStatus.CONFLICT, "VERSION_CONFLICT", "门店已变更，请刷新后重新提交");
+    if (!Set.of(ReviewStatus.APPROVED, ReviewStatus.SUSPENDED).contains(merchant.getStatus()))
+      throw error(HttpStatus.CONFLICT, "MERCHANT_NOT_APPROVED", "门店尚未完成入驻审核");
+    if (merchant.getQualificationFileId() != null)
+      throw error(HttpStatus.CONFLICT, "QUALIFICATION_ALREADY_BOUND", "门店已关联审核资质，无需补交");
+    if (workflow.pendingQualification(merchant.getId()) != null)
+      throw error(HttpStatus.CONFLICT, "QUALIFICATION_PENDING", "资质补充申请正在审核，请勿重复提交");
+    // Delegated administrators must also reference the actual owner's sealed file.
+    files.requireReadyOwned(request.qualificationFileId(), merchant.getOwnerId().toString(), PURPOSE);
+    String id = UUID.randomUUID().toString();
+    var application = new MerchantApplicationRow(id, merchant.getOwnerId(), merchant.getSchoolId(),
+        "", merchant.getName(), merchant.getCategory(), merchant.getAddress(), merchant.getLongitude(),
+        merchant.getLatitude(), merchant.getDescription(), request.qualificationFileId(), "PENDING",
+        merchant.getId(), null, clock.instant(), null);
+    workflow.insertQualification(application);
+    workflow.insertQualificationSubmission(id, merchant.getId(), merchant.getVersion());
+    audit.record(CurrentActor.id(), "MERCHANT_QUALIFICATION_SUBMITTED", "MERCHANT_APPLICATION", id,
+        Map.of("merchantId", key));
+    return view(workflow.find(id));
   }
 
   private Application view(MerchantApplicationRow a) {
+    var supplement = workflow.qualificationSubmission(a.id());
+    Long target = supplement == null ? a.merchantId() : supplement.merchantId();
     return new Application(
         a.id(),
         a.applicantId().toString(),
@@ -115,10 +156,11 @@ public class MerchantWorkflowServiceImpl
         a.description(),
         a.qualificationFileId(),
         a.status(),
-        a.merchantId() == null ? null : a.merchantId().toString(),
+        target == null ? null : target.toString(),
         a.reviewReason(),
         a.submittedAt(),
-        a.reviewedAt());
+        a.reviewedAt(),
+        supplement == null ? "ONBOARDING" : "QUALIFICATION");
   }
 
   @Transactional
@@ -308,27 +350,35 @@ public class MerchantWorkflowServiceImpl
     var a = workflow.lock(key);
     if (!"PENDING".equals(a.status()))
       throw error(HttpStatus.CONFLICT, "ALREADY_REVIEWED", "该申请已经审核");
-    Long merchant = null;
+    var supplement = workflow.qualificationSubmission(key);
+    Long merchant = supplement == null ? null : supplement.merchantId();
     if ("APPROVED".equals(decision)) {
-      accounts.promoteMerchant(a.applicantId().toString());
       files.requireReadyOwned(a.qualificationFileId(), a.applicantId().toString(), PURPOSE);
-      var m = new MerchantEntity();
-      m.setOwnerId(a.applicantId());
-      m.setSchoolId(a.schoolId());
-      m.setName(a.name());
-      m.setCategory(a.category());
-      m.setAddress(a.address());
-      m.setLongitude(a.longitude());
-      m.setLatitude(a.latitude());
-      m.setDescription(a.description());
-      m.setBusinessHours("");
-      m.setQualificationFileId(a.qualificationFileId());
-      m.setStatus(ReviewStatus.APPROVED);
-      m.setVersion(0);
-      merchants.insert(m);
-      merchant = m.getId();
-      workflow.addMember(merchant, a.applicantId(), "OWNER", clock.instant());
-      searchEvents.changed("MERCHANT", merchant.toString());
+      if (supplement != null) {
+        var existing = store(supplement.merchantId().toString(), true);
+        if (!existing.getOwnerId().equals(a.applicantId())
+            || workflow.bindQualification(existing.getId(), supplement.merchantVersion(), a.qualificationFileId()) != 1)
+          throw error(HttpStatus.CONFLICT, "VERSION_CONFLICT", "门店状态已变更，请驳回后重新补交资质");
+      } else {
+        accounts.promoteMerchant(a.applicantId().toString());
+        var m = new MerchantEntity();
+        m.setOwnerId(a.applicantId());
+        m.setSchoolId(a.schoolId());
+        m.setName(a.name());
+        m.setCategory(a.category());
+        m.setAddress(a.address());
+        m.setLongitude(a.longitude());
+        m.setLatitude(a.latitude());
+        m.setDescription(a.description());
+        m.setBusinessHours("");
+        m.setQualificationFileId(a.qualificationFileId());
+        m.setStatus(ReviewStatus.APPROVED);
+        m.setVersion(0);
+        merchants.insert(m);
+        merchant = m.getId();
+        workflow.addMember(merchant, a.applicantId(), "OWNER", clock.instant());
+        searchEvents.changed("MERCHANT", merchant.toString());
+      }
     } else if (!"REJECTED".equals(decision))
       throw error(HttpStatus.BAD_REQUEST, "INVALID_DECISION", "审核决定不合法");
     var review =
@@ -339,7 +389,9 @@ public class MerchantWorkflowServiceImpl
             decision,
             reason.strip(),
             clock.instant());
-    workflow.decide(key, decision, merchant, reason.strip(), clock.instant());
+    // The onboarding table retains its one-original-application-per-store invariant.
+    // Supplement targets are linked only through the additive relation table.
+    workflow.decide(key, decision, supplement == null ? merchant : null, reason.strip(), clock.instant());
     workflow.review(review);
     audit.record(
         CurrentActor.id(),

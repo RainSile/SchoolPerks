@@ -553,6 +553,8 @@ class BusinessReadChainsMySqlTest extends RbacIsolationMySqlTest {
   }
 
   private String portal(String path, String method) {
+    if (method.equals("GET") && (path.equals("/api/v1/users/me/merchant-applications")
+        || path.startsWith("/api/v1/merchant-applications/"))) return null;
     if (path.startsWith("/api/v1/admin/")) return "ADMIN";
     if (path.startsWith("/api/v1/merchants/")
             && (path.split("/").length > 5 || method.equals("PATCH"))
